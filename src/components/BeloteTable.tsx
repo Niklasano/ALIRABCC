@@ -81,17 +81,20 @@ const BeloteTable: React.FC<BeloteTableProps> = ({ teamName, rows }) => {
       <div className="w-full overflow-hidden">
         <Table className="w-full table-fixed">
           <TableHeader>
-            <TableRow>
-              {headers.map((header) => (
-                <TableHead 
-                  key={header} 
-                  className="bg-muted text-center font-bold whitespace-nowrap py-1 px-0.5 text-[10px] sm:text-xs"
-                >
-                  {header}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
+        <TableRow>
+    {headers.map((header) => (
+      <TableHead 
+        key={header} 
+        className="bg-muted text-center font-bold whitespace-nowrap py-1 px-0.5 text-[10px] sm:text-xs"
+        style={{
+          width: header === "Alerte" ? "15%" : header === "Remarques" ? "12%" : "auto"
+        }}
+      >
+        {header}
+      </TableHead>
+    ))}
+  </TableRow>
+</TableHeader>
           <TableBody>
             {rows.map((row, rowIndex) => (
               <TableRow key={rowIndex}>
