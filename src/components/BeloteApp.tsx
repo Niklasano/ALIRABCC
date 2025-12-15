@@ -852,16 +852,16 @@ const BeloteApp: React.FC = () => {
         />
       </div>
       
-      <div ref={scoreTablesRef} className="flex flex-col md:flex-row gap-8 w-full">
-        <div className="relative rounded-xl overflow-hidden animate-in w-full md:w-1/2" style={{animationDelay: "0.1s"}}>
-          <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
-          <BeloteTable teamName={gameState.team1Name} rows={gameState.team1Rows} />
-        </div>
-        <div className="relative rounded-xl overflow-hidden animate-in w-full md:w-1/2" style={{animationDelay: "0.2s"}}>
-          <div className="absolute top-0 left-0 w-full h-1 bg-red-600"></div>
-          <BeloteTable teamName={gameState.team2Name} rows={gameState.team2Rows} />
-        </div>
-      </div>
+      <div ref={scoreTablesRef} className="flex flex-col lg:flex-row gap-8 w-full">
+  <div className="relative rounded-xl overflow-hidden animate-in w-full lg:w-full" style={{animationDelay: "0.1s"}}>
+    <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
+    <BeloteTable teamName={gameState.team1Name} rows={gameState.team1Rows} />
+  </div>
+  <div className="relative rounded-xl overflow-hidden animate-in w-full lg:w-full" style={{animationDelay: "0.2s"}}>
+    <div className="absolute top-0 left-0 w-full h-1 bg-red-600"></div>
+    <BeloteTable teamName={gameState.team2Name} rows={gameState.team2Rows} />
+  </div>
+</div>
       
       {renameTeamDialog && (
         <TeamNameDialog
