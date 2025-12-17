@@ -1,7 +1,6 @@
 import { useState } from "react";
 import BeloteApp from "@/components/BeloteApp";
-import WelcomeDialog from "@/components/WelcomeDialog";
-import ThemeToggle from "@/components/ThemeToggle";
+import ThemeToggle from "@/src/components/ThemeToggle";
 
 export default function Index() {
   const [showWelcome, setShowWelcome] = useState(true);
