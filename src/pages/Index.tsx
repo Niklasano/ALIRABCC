@@ -1,5 +1,5 @@
 import BeloteApp from "@/components/BeloteApp";
-import ThemeToggle from "@/src/components/ThemeToggle";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Index() {
   return (
