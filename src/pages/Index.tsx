@@ -1,10 +1,7 @@
-import { useState } from "react";
 import BeloteApp from "@/components/BeloteApp";
 import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Index() {
-  // Suppression de la variable d'état showWelcome devenue inutile
-  
   return (
     <>
       <ThemeToggle />
