@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -46,6 +45,43 @@
     
     --team1: 210 100% 50%;
     --team2: 0 85% 55%;
+  }
+
+  /* --- THÈMES AUTOMATIQUES --- */
+
+  /* NOËL (Actif en Décembre) */
+  .theme-christmas {
+    --background: 145 45% 10%;
+    --foreground: 45 100% 95%;
+    --primary: 0 84% 60%; /* Rouge Noël */
+    --primary-foreground: 45 100% 95%;
+    --card: 145 45% 15%;
+    --card-foreground: 45 100% 95%;
+    --border: 45 100% 50%; /* Bordures dorées */
+    --accent: 0 84% 30%;
+    --secondary: 145 45% 20%;
+  }
+
+  /* HALLOWEEN (Fin Octobre) */
+  .theme-halloween {
+    --background: 240 10% 4%;
+    --foreground: 25 100% 50%; /* Orange Citrouille */
+    --primary: 25 100% 50%;
+    --primary-foreground: 240 10% 4%;
+    --card: 240 10% 8%;
+    --card-foreground: 25 100% 70%;
+    --border: 25 100% 30%;
+  }
+
+  /* ÉTÉ (Juin à Août) */
+  .theme-summer {
+    --background: 195 100% 95%;
+    --foreground: 200 100% 10%;
+    --primary: 195 100% 45%; /* Bleu Lagon */
+    --primary-foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 100% 15%;
+    --border: 195 100% 80%;
   }
 
   .dark {
@@ -103,6 +139,19 @@
     min-height: 100vh;
   }
   
+  /* Backgrounds dynamiques pour les thèmes */
+  .theme-christmas body {
+    background: linear-gradient(135deg, #0a2e1f 0%, #1a4a35 100%) !important;
+  }
+  
+  .theme-halloween body {
+    background: linear-gradient(135deg, #0f0f0f 0%, #2b1d0e 100%) !important;
+  }
+  
+  .theme-summer body {
+    background: linear-gradient(135deg, #e0f7fa 0%, #80deea 100%) !important;
+  }
+
   .dark body {
     background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
   }
