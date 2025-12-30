@@ -23,3 +23,4 @@ const WelcomeDialog: React.FC<WelcomeDialogProps> = ({ open, onClose }) => {
     </>
   );
 };
+export default WelcomeDialog;
