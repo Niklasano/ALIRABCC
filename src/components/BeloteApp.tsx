@@ -27,7 +27,6 @@ import WinnerAlert from './WinnerAlert';
 import LeaderboardDialog from './LeaderboardDialog';
 import PointsRulesDialog from './PointsRulesDialog';
 import AlertsDialog from './AlertsDialog';
-import ChristmasDecorations from './ChristmasDecorations';
 import { useTeamStats } from '@/hooks/useTeamStats';
 import { useBonusMalus } from '@/hooks/useBonusMalus';
 import { useGameSession } from '@/hooks/useGameSession';
@@ -743,11 +742,11 @@ const BeloteApp: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 pb-12 max-w-7xl">
-      <ChristmasDecorations />
+      
       
       <header className="py-4 mb-4">
         <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-blue-600 to-red-600 text-transparent bg-clip-text">
-          🎄 Belote - Suivi des Scores 🎄
+          Belote - Suivi des Scores
         </h1>
         {!gameState.teamSetupComplete && (
           <p className="text-center text-gray-600 text-sm mt-2 animate-pulse">
