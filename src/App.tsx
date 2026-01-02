@@ -11,26 +11,26 @@ const queryClient = new QueryClient();
 
 /**
  * Détermine le thème visuel selon le calendrier.
- * Si aucune date ne correspond, renvoie 'light' (thème standard).
+ * Aujourd'hui (2 Janvier), elle retournera 'light'.
  */
 const getAutoTheme = () => {
   const now = new Date();
   const month = now.getMonth() + 1; // Janvier = 1
   const day = now.getDate();
 
-  // 1. NOËL : Du 1er au 31 Décembre
+  // NOËL : Uniquement en Décembre
   if (month === 12) return 'christmas';
   
-  // 2. HALLOWEEN : Du 20 Octobre au 3 Novembre
+  // HALLOWEEN : Du 20 Octobre au 3 Novembre
   if ((month === 10 && day >= 20) || (month === 11 && day <= 3)) return 'halloween';
   
-  // 3. ÉTÉ : Juin, Juillet, Août
+  // ÉTÉ : Juin, Juillet, Août
   if (month >= 6 && month <= 8) return 'summer';
   
-  // 4. SAINT VALENTIN : Du 10 au 17 Février
+  // SAINT VALENTIN : Du 10 au 17 Février
   if (month === 2 && day >= 10 && day <= 17) return 'valentine';
 
-  // 5. THÈME STANDARD : Pour tout le reste de l'année
+  // THÈME STANDARD : Pour tout le reste de l'année
   return 'light';
 };
 
@@ -43,11 +43,11 @@ const App = () => {
         attribute="class" 
         defaultTheme={autoTheme} 
         enableSystem={false}
+        // Le 'key' force le rafraîchissement immédiat quand on change de thème
+        key={autoTheme} 
       >
         <TooltipProvider>
-          {/* La div porte la classe 'theme-light' par défaut, 
-            ce qui n'applique aucune modification sur vos styles index.css existants.
-          */}
+          {/* On applique la classe dynamique ici */}
           <div className={`theme-${autoTheme} min-h-screen transition-colors duration-500`}>
             <Toaster />
             <Sonner />
