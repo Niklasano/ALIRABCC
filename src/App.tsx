@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import { useEffect } from "react";
+import { useEffect } from "react"; // NE PAS OUBLIER CET IMPORT
 
 const queryClient = new QueryClient();
 
@@ -15,34 +15,24 @@ const getAutoTheme = () => {
   const month = now.getMonth() + 1;
   const day = now.getDate();
 
-  // NOËL : Uniquement en Décembre
   if (month === 12) return 'christmas';
-  
-  // HALLOWEEN : 20 Octobre au 3 Novembre
   if ((month === 10 && day >= 20) || (month === 11 && day <= 3)) return 'halloween';
-  
-  // ÉTÉ : Juin, Juillet, Août
   if (month >= 6 && month <= 8) return 'summer';
-  
-  // SAINT VALENTIN : 10 au 17 Février
   if (month === 2 && day >= 10 && day <= 17) return 'valentine';
 
-  return 'light'; // Standard
+  return 'light';
 };
 
 const App = () => {
   const autoTheme = getAutoTheme();
 
+  // FORCE LE NETTOYAGE POUR FIREFOX
   useEffect(() => {
-    // SECURITÉ NAVIGATEUR (Chrome/Firefox) : 
-    // Si on n'est plus en période de fête, on nettoie le stockage local
     const savedTheme = localStorage.getItem('theme');
-    const festiveThemes = ['christmas', 'halloween', 'summer', 'valentine'];
-    
-    if (festiveThemes.includes(savedTheme || '') && savedTheme !== autoTheme) {
+    // Si on n'est plus en décembre mais que Firefox a gardé "christmas"
+    if (savedTheme === 'christmas' && autoTheme !== 'christmas') {
       localStorage.removeItem('theme');
-      // On ne reload que si nécessaire pour éviter les boucles
-      if (savedTheme !== 'light') window.location.reload();
+      window.location.reload(); 
     }
   }, [autoTheme]);
 
@@ -52,10 +42,9 @@ const App = () => {
         attribute="class" 
         defaultTheme={autoTheme} 
         enableSystem={false}
-        key={autoTheme}
+        key={autoTheme} 
       >
         <TooltipProvider>
-          {/* La classe theme-xxx permet d'appliquer les couleurs du CSS */}
           <div className={`theme-${autoTheme} min-h-screen transition-colors duration-500`}>
             <Toaster />
             <Sonner />
