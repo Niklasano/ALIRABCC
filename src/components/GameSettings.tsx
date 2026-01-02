@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -16,6 +15,15 @@ const GameSettings: React.FC<GameSettingsProps> = ({ victoryPoints, setVictoryPo
         <Settings className="h-5 w-5 text-primary" />
         <h3 className="text-lg font-semibold">Paramètres</h3>
       </div>
+
+      {/* AJOUT DU LOGO ICI - Centré avec une séparation */}
+      <div className="flex justify-center py-4 border-b border-white/20 dark:border-slate-700/30 mb-6">
+        <img 
+          src="/lovable-uploads/88d78836-a013-4b12-bd37-dea6ec9e1b44.png" 
+          alt="ALIRABCC" 
+          className="h-16 w-auto object-contain" 
+        />
+      </div>
       
       <div className="flex flex-col gap-2">
         <Label htmlFor="victory-condition" className="text-sm text-muted-foreground">
@@ -32,7 +40,7 @@ const GameSettings: React.FC<GameSettingsProps> = ({ victoryPoints, setVictoryPo
           </SelectContent>
         </Select>
         
-        <div className="mt-4 text-xs text-center text-muted-foreground">
+        <div className="mt-4 text-xs text-center text-muted-foreground font-medium">
           ALIRABCC - Sans Le Jeu
         </div>
       </div>
