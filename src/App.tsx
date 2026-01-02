@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import { useEffect } from "react"; // NE PAS OUBLIER CET IMPORT
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
@@ -15,22 +15,23 @@ const getAutoTheme = () => {
   const month = now.getMonth() + 1;
   const day = now.getDate();
 
+  // Logique dynamique pour les thèmes futurs
   if (month === 12) return 'christmas';
   if ((month === 10 && day >= 20) || (month === 11 && day <= 3)) return 'halloween';
   if (month >= 6 && month <= 8) return 'summer';
   if (month === 2 && day >= 10 && day <= 17) return 'valentine';
 
-  return 'light';
+  return 'light'; // Thème par défaut aujourd'hui
 };
 
 const App = () => {
   const autoTheme = getAutoTheme();
 
-  // FORCE LE NETTOYAGE POUR FIREFOX
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
-    // Si on n'est plus en décembre mais que Firefox a gardé "christmas"
-    if (savedTheme === 'christmas' && autoTheme !== 'christmas') {
+    // Sécurité pour forcer le nettoyage si on sort d'une période de fête
+    const festiveThemes = ['christmas', 'halloween', 'summer', 'valentine'];
+    if (festiveThemes.includes(savedTheme || '') && savedTheme !== autoTheme) {
       localStorage.removeItem('theme');
       window.location.reload(); 
     }
@@ -45,7 +46,8 @@ const App = () => {
         key={autoTheme} 
       >
         <TooltipProvider>
-          <div className={`theme-${autoTheme} min-h-screen transition-colors duration-500`}>
+          {/* On n'applique la classe theme-xxx que si on est en période de fête */}
+          <div className={`${autoTheme !== 'light' ? `theme-${autoTheme}` : ''} min-h-screen transition-colors duration-500`}>
             <Toaster />
             <Sonner />
             <BrowserRouter>
