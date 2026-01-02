@@ -36,7 +36,7 @@ const GameSettings: React.FC<GameSettingsProps> = ({ victoryPoints, setVictoryPo
         </div>
 
         {/* Logo encore plus bas (mt-10) et plus grand (h-48) */}
-        <div className="flex justify-center mt-10">
+        <div className="flex justify-center mt-8">
           <img 
             src="/lovable-uploads/88d78836-a013-4b12-bd37-dea6ec9e1b44.png" 
             alt="ALIRABCC Logo" 
