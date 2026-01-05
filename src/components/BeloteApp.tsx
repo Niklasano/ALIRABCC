@@ -212,43 +212,32 @@ useEffect(() => {
   
 // Fonction pour sauvegarder la disposition des joueurs et générer URL
  const handleSaveLayout = async (positions: string[], dealerIndex: number) => {
-    // 1. Mise à jour immédiate de l'interface
-    gameState.setPlayers(positions);
-    gameState.setCurrentDealer(dealerIndex);
-    gameState.setTeamSetupComplete(true);
+  // 1. Mise à jour immédiate de l'interface (UI)
+  gameState.setPlayers(positions);
+  gameState.setCurrentDealer(dealerIndex);
+  gameState.setTeamSetupComplete(true);
 
-    if (!urlParam) return;
-
+  // 2. Sauvegarde dans Supabase
+  if (urlParam) {
     try {
-      // On vérifie si la session existe déjà dans la base
-      const existingSession = await gameSession.loadGameSession(urlParam);
-
-      if (existingSession) {
-        // SCÉNARIO A : La session existe déjà, on la met simplement à jour
-        await gameSession.updateGameSession(urlParam, {
-          players_layout: positions,
-          current_dealer: dealerIndex
-        });
-        console.log("Session mise à jour.");
-      } else {
-        // SCÉNARIO B : C'est la première fois qu'on enregistre cette partie
-			await gameSession.createGameSession(
-			  gameState.team1Player1,
-			  gameState.team1Player2,
-			  gameState.team2Player1,
-			  gameState.team2Player2,
-			  positions, // positions venant du dialogue
-			  dealerIndex, // dealer venant du dialogue
-			  gameState.victoryPoints,
-			  urlParam // IMPORTANT : on passe l'ID de l'URL ici
-			);
-        console.log("Session créée avec succès.");
-      }
+      // Nous utilisons createGameSession qui contient déjà notre logique .upsert()
+      // Cela garantit que la session est soit créée, soit mise à jour avec la nouvelle disposition
+      await gameSession.createGameSession(
+        gameState.team1Player1,
+        gameState.team1Player2,
+        gameState.team2Player1,
+        gameState.team2Player2,
+        positions,      // On envoie les nouvelles positions
+        dealerIndex,    // On envoie le nouveau donneur
+        gameState.victoryPoints,
+        urlParam        // On précise l'URL actuelle pour ne pas en créer une nouvelle
+      );
+      console.log("Disposition et donneur synchronisés sur le serveur.");
     } catch (error) {
-      console.error('Erreur technique lors de la synchronisation:', error);
-      // On ne bloque pas l'utilisateur si c'est juste un problème de log
+      console.error("Erreur lors de la synchronisation de la disposition:", error);
     }
-  };
+  }
+};
   
   // Fonction pour ajouter une manche
   const handleAddRound = () => {

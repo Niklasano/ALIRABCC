@@ -126,10 +126,10 @@ const createGameSession = async (
       setSessionUrl(url);
 
       return {
-        ...data,
-        players_layout: (data.players_layout as string[]) || [],
-        game_data: (data.game_data as unknown as BeloteRow[]) || [],
-      };
+		...data,
+		players_layout: Array.isArray(data.players_layout) ? data.players_layout : [],
+		game_data: (data.game_data as unknown as BeloteRow[]) || [],
+		};
     } catch (error) {
       console.error('Erreur lors du chargement de la session:', error);
       // On reste discret sur les erreurs de chargement pour ne pas bloquer l'expérience
