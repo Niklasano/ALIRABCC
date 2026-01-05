@@ -34,6 +34,7 @@ export const useGameSession = () => {
   };
 
   // Créer une nouvelle session de jeu
+// Créer une nouvelle session de jeu
   const createGameSession = async (
     team1Player1: string,
     team1Player2: string,
@@ -41,18 +42,22 @@ export const useGameSession = () => {
     team2Player2: string,
     playersLayout: string[],
     currentDealer: number,
-    victoryPoints: string = '2000'
+    victoryPoints: string = '2000',
+    existingUrl?: string // <--- Ajout d'un paramètre optionnel
   ) => {
     setLoading(true);
     try {
-      const newSessionUrl = generateSessionUrl();
+      // Si une URL existe déjà (venant de l'URL du navigateur), on l'utilise. 
+      // Sinon on en génère une.
+      const finalSessionUrl = existingUrl || generateSessionUrl();
+      
       const team1Name = `${team1Player1}/${team1Player2}`;
       const team2Name = `${team2Player1}/${team2Player2}`;
 
       const { data, error } = await supabase
         .from('game_sessions')
         .insert({
-          session_url: newSessionUrl,
+          session_url: finalSessionUrl,
           team1_player1: team1Player1,
           team1_player2: team1Player2,
           team2_player1: team2Player1,
@@ -69,18 +74,19 @@ export const useGameSession = () => {
       if (error) throw error;
 
       setSessionId(data.id);
-      setSessionUrl(newSessionUrl);
+      setSessionUrl(finalSessionUrl);
       
-      // Mettre à jour l'URL du navigateur
-      const gameUrl = `/game/${newSessionUrl}`;
-      window.history.pushState({}, '', gameUrl);
+      // On ne met à jour l'historique que si c'est une nouvelle URL générée
+      if (!existingUrl) {
+        const gameUrl = `/game/${finalSessionUrl}`;
+        window.history.pushState({}, '', gameUrl);
+      }
       
-      toast.success("Session de jeu créée ! Vos scores seront sauvegardés.");
-      
+      toast.success("Partie synchronisée avec succès !");
       return data;
     } catch (error) {
       console.error('Erreur lors de la création de la session:', error);
-      toast.error("Impossible de créer la session de jeu sur le serveur");
+      toast.error("Impossible de synchroniser la partie");
       throw error;
     } finally {
       setLoading(false);
