@@ -23,37 +23,40 @@ const PlayerLayout: React.FC<PlayerLayoutProps> = ({
   initialPositions,
   initialDealer
 }) => {
-  // Récupérer les 4 joueurs sélectionnés
   const selectedPlayers = [...team1Players, ...team2Players].filter(Boolean);
   
-  const [positions, setPositions] = useState<(string | null)[]>(
-    initialPositions && initialPositions.length === 4 ? [...initialPositions] : [null, null, null, null]
-  );
-  const [dealer, setDealer] = useState<string | null>(
-    initialDealer !== undefined && initialPositions && initialPositions.length === 4 ? initialPositions[initialDealer] : null
-  );
+  // Initialisation des états
+  const [positions, setPositions] = useState<(string | null)[]>([null, null, null, null]);
+  const [dealer, setDealer] = useState<string | null>(null);
 
-  // Synchronisation des données quand le dialogue s'ouvre ou que les données arrivent
   useEffect(() => {
     if (open) {
-      if (initialPositions && initialPositions.length === 4) {
+      // Si on a des données sauvegardées en base de données, on les charge
+      if (initialPositions && initialPositions.length === 4 && initialPositions.every(p => p !== null)) {
         setPositions([...initialPositions]);
         if (initialDealer !== undefined && initialPositions[initialDealer]) {
           setDealer(initialPositions[initialDealer]);
         }
-      } else if (selectedPlayers.length === 4) {
-        // Initialisation par défaut si aucune disposition n'existe
+      } 
+      // Sinon, si l'état local est vide, on propose la liste brute par défaut
+      else if (positions.every(p => p === null) && selectedPlayers.length === 4) {
         setPositions(selectedPlayers);
       }
     }
-  }, [open, initialPositions, initialDealer, team1Players, team2Players]);
+    // Note: On ne met pas positions dans les dépendances pour éviter les boucles de reset
+  }, [open, initialPositions, initialDealer]);
+
+  // Fonction pour filtrer les joueurs déjà choisis dans les autres listes
+  const getAvailablePlayersForPosition = (currentIndex: number) => {
+    const otherSelectedPlayers = positions.filter((p, idx) => idx !== currentIndex && p !== null);
+    return selectedPlayers.filter(p => !otherSelectedPlayers.includes(p));
+  };
 
   const handlePositionChange = (index: number, player: string) => {
     const newPositions = [...positions];
     newPositions[index] = player;
     setPositions(newPositions);
     
-    // Si le donneur actuel n'est plus dans les positions, on le réinitialise
     if (dealer && !newPositions.includes(dealer)) {
       setDealer(null);
     }
@@ -66,11 +69,6 @@ const PlayerLayout: React.FC<PlayerLayoutProps> = ({
     }
 
     const dealerIndex = positions.findIndex(p => p === dealer);
-    if (dealerIndex === -1) {
-      alert("Le donneur doit être l'un des joueurs sélectionnés");
-      return;
-    }
-
     onSaveLayout(positions as string[], dealerIndex);
     onClose();
   };
@@ -83,89 +81,36 @@ const PlayerLayout: React.FC<PlayerLayoutProps> = ({
         </DialogHeader>
         
         <div className="grid grid-cols-3 gap-4 py-4">
-          {/* Haut Gauche */}
-          <div className="flex flex-col items-center">
-            <Label className="mb-2 text-xs text-muted-foreground text-center">Haut Gauche</Label>
-            <Select 
-              value={positions[0] || ''} 
-              onValueChange={(value) => handlePositionChange(0, value)}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Sélectionner" />
-              </SelectTrigger>
-              <SelectContent>
-                {selectedPlayers.map((player) => (
-                  <SelectItem key={`pos0-${player}`} value={player}>
-                    {player}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div></div>
-          
-          {/* Haut Droit */}
-          <div className="flex flex-col items-center">
-            <Label className="mb-2 text-xs text-muted-foreground text-center">Haut Droit</Label>
-            <Select 
-              value={positions[1] || ''} 
-              onValueChange={(value) => handlePositionChange(1, value)}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Sélectionner" />
-              </SelectTrigger>
-              <SelectContent>
-                {selectedPlayers.map((player) => (
-                  <SelectItem key={`pos1-${player}`} value={player}>
-                    {player}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* Bas Gauche */}
-          <div className="flex flex-col items-center col-start-1 row-start-3">
-            <Label className="mb-2 text-xs text-muted-foreground text-center">Bas Gauche</Label>
-            <Select 
-              value={positions[2] || ''} 
-              onValueChange={(value) => handlePositionChange(2, value)}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Sélectionner" />
-              </SelectTrigger>
-              <SelectContent>
-                {selectedPlayers.map((player) => (
-                  <SelectItem key={`pos2-${player}`} value={player}>
-                    {player}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div></div>
-          
-          {/* Bas Droit */}
-          <div className="flex flex-col items-center col-start-3 row-start-3">
-            <Label className="mb-2 text-xs text-muted-foreground text-center">Bas Droit</Label>
-            <Select 
-              value={positions[3] || ''} 
-              onValueChange={(value) => handlePositionChange(3, value)}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Sélectionner" />
-              </SelectTrigger>
-              <SelectContent>
-                {selectedPlayers.map((player) => (
-                  <SelectItem key={`pos3-${player}`} value={player}>
-                    {player}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {[0, 1, 2, 3].map((idx) => {
+            // Placement visuel : 0:HG, 1:HD, 2:BG, 3:BD
+            const gridClass = idx === 2 ? "col-start-1 row-start-3" : idx === 3 ? "col-start-3 row-start-3" : "";
+            const label = ["Haut Gauche", "Haut Droit", "Bas Gauche", "Bas Droit"][idx];
+            
+            return (
+              <React.Fragment key={idx}>
+                {idx === 1 && <div></div>}
+                <div className={`flex flex-col items-center ${gridClass}`}>
+                  <Label className="mb-2 text-xs text-muted-foreground text-center">{label}</Label>
+                  <Select 
+                    value={positions[idx] || ''} 
+                    onValueChange={(value) => handlePositionChange(idx, value)}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Choisir" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailablePlayersForPosition(idx).map((player) => (
+                        <SelectItem key={`pos${idx}-${player}`} value={player}>
+                          {player}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {idx === 2 && <div></div>}
+              </React.Fragment>
+            );
+          })}
         </div>
         
         <div className="flex flex-col space-y-2 mt-4 border-t pt-4">
