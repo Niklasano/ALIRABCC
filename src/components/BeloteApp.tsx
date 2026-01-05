@@ -84,56 +84,58 @@ const BeloteApp: React.FC = () => {
   const [teamNamesValid, setTeamNamesValid] = useState<boolean>(false);
   
 useEffect(() => {
-    const loadSessionFromUrl = async () => {
-      if (urlParam) {
-        try {
-          // On tente de charger la session
-          const session = await gameSession.loadGameSession(urlParam);
+  const loadSessionFromUrl = async () => {
+    if (urlParam) {
+      try {
+        const session = await gameSession.loadGameSession(urlParam);
+        
+        if (session) {
+          gameState.setTeam1Player1(session.team1_player1 || '');
+          gameState.setTeam1Player2(session.team1_player2 || '');
+          gameState.setTeam2Player1(session.team2_player1 || '');
+          gameState.setTeam2Player2(session.team2_player2 || '');
+          gameState.setPlayers(session.players_layout || []);
+          gameState.setCurrentDealer(session.current_dealer || 0);
+          gameState.setVictoryPoints(session.victory_points || '2000');
           
-          if (session) {
-            // Si elle existe, on restaure tout
-            gameState.setTeam1Player1(session.team1_player1 || '');
-            gameState.setTeam1Player2(session.team1_player2 || '');
-            gameState.setTeam2Player1(session.team2_player1 || '');
-            gameState.setTeam2Player2(session.team2_player2 || '');
-            gameState.setPlayers(session.players_layout || []);
-            gameState.setCurrentDealer(session.current_dealer || 0);
-            gameState.setVictoryPoints(session.victory_points || '2000');
-            
-            const savedData = (session.game_data as any) || [];
-            gameState.setData(savedData);
-            gameState.setTeam1Score(session.team1_score || 0);
-            gameState.setTeam2Score(session.team2_score || 0);
-            
-            gameActions.updateDisplayTables(
-              savedData,
-              gameState.setTeam1Rows,
-              gameState.setTeam2Rows,
-              gameState.setTeam1Score,
-              gameState.setTeam2Score,
-              gameState.setTeam1Winner,
-              gameState.setTeam2Winner,
-              session.victory_points || '2000'
-            );
+          const savedData = (session.game_data as any) || [];
+          gameState.setData(savedData);
+          gameState.setTeam1Score(session.team1_score || 0);
+          gameState.setTeam2Score(session.team2_score || 0);
+          
+          gameActions.updateDisplayTables(
+            savedData,
+            gameState.setTeam1Rows,
+            gameState.setTeam2Rows,
+            gameState.setTeam1Score,
+            gameState.setTeam2Score,
+            gameState.setTeam1Winner,
+            gameState.setTeam2Winner,
+            session.victory_points || '2000'
+          );
 
-            if (session.team1_player1 && session.team2_player1) {
-              gameState.setTeamSetupComplete(true);
-            }
-          } else {
-            // SI LA SESSION N'EXISTE PAS ENCORE : 
-            // C'est normal, c'est une nouvelle partie. On ne fait rien et on laisse l'utilisateur 
-            // remplir les noms pour créer la session lors de la première mène.
-            console.log("Nouvelle session de jeu détectée.");
+          // --- AJOUT ICI ---
+          // On vérifie si les 4 joueurs sont présents
+          const hasAllPlayers = session.team1_player1 && session.team1_player2 && 
+                               session.team2_player1 && session.team2_player2;
+
+          if (hasAllPlayers) {
+            setTeamNamesValid(true); // Débloque le bouton "Disposition"
+            gameState.setTeamSetupComplete(true); // Affiche le tableau des scores
           }
-        } catch (error) {
-          // On log l'erreur en console mais on n'affiche plus l'alerte bloquante
-          console.error('Info: Session non trouvée ou nouvelle:', error);
+          // ------------------
+          
+        } else {
+          console.log("Nouvelle session de jeu détectée.");
         }
+      } catch (error) {
+        console.error('Info: Session non trouvée ou nouvelle:', error);
       }
-    };
+    }
+  };
 
-    loadSessionFromUrl();
-  }, [urlParam]);
+  loadSessionFromUrl();
+}, [urlParam]);
 
   // Effet pour sauvegarder automatiquement la partie en cours dans Supabase
   useEffect(() => {
