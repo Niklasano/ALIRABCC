@@ -87,9 +87,11 @@ useEffect(() => {
     const loadSessionFromUrl = async () => {
       if (urlParam) {
         try {
+          // On tente de charger la session
           const session = await gameSession.loadGameSession(urlParam);
           
           if (session) {
+            // Si elle existe, on restaure tout
             gameState.setTeam1Player1(session.team1_player1 || '');
             gameState.setTeam1Player2(session.team1_player2 || '');
             gameState.setTeam2Player1(session.team2_player1 || '');
@@ -117,15 +119,21 @@ useEffect(() => {
             if (session.team1_player1 && session.team2_player1) {
               gameState.setTeamSetupComplete(true);
             }
+          } else {
+            // SI LA SESSION N'EXISTE PAS ENCORE : 
+            // C'est normal, c'est une nouvelle partie. On ne fait rien et on laisse l'utilisateur 
+            // remplir les noms pour créer la session lors de la première mène.
+            console.log("Nouvelle session de jeu détectée.");
           }
         } catch (error) {
-          console.error('Erreur de synchronisation session:', error);
+          // On log l'erreur en console mais on n'affiche plus l'alerte bloquante
+          console.error('Info: Session non trouvée ou nouvelle:', error);
         }
       }
     };
 
     loadSessionFromUrl();
-  }, [urlParam]); // <--- La ligne 142 est ici. Assurez-vous d'avoir bien "});" après le crochet.
+  }, [urlParam]);
 
   // Effet pour sauvegarder automatiquement la partie en cours dans Supabase
   useEffect(() => {

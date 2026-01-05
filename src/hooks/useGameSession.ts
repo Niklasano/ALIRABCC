@@ -75,12 +75,12 @@ export const useGameSession = () => {
       const gameUrl = `/game/${newSessionUrl}`;
       window.history.pushState({}, '', gameUrl);
       
-      toast.success("Session de jeu créée ! Partagez cette URL avec les autres joueurs.");
+      toast.success("Session de jeu créée ! Vos scores seront sauvegardés.");
       
       return data;
     } catch (error) {
       console.error('Erreur lors de la création de la session:', error);
-      toast.error("Impossible de créer la session de jeu");
+      toast.error("Impossible de créer la session de jeu sur le serveur");
       throw error;
     } finally {
       setLoading(false);
@@ -91,18 +91,19 @@ export const useGameSession = () => {
   const loadGameSession = async (url: string): Promise<GameSession | null> => {
     setLoading(true);
     try {
+      // .maybeSingle() ne renvoie pas d'erreur si la ligne n'existe pas
       const { data, error } = await supabase
         .from('game_sessions')
         .select('*')
         .eq('session_url', url)
-        .single();
+        .maybeSingle();
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          toast.error("Session de jeu introuvable");
-          return null;
-        }
-        throw error;
+      if (error) throw error;
+
+      // Si la session n'existe pas encore (nouvelle partie via URL Index)
+      if (!data) {
+        setSessionUrl(url);
+        return null;
       }
 
       setSessionId(data.id);
@@ -115,7 +116,7 @@ export const useGameSession = () => {
       };
     } catch (error) {
       console.error('Erreur lors du chargement de la session:', error);
-      toast.error("Impossible de charger la session de jeu");
+      // On reste discret sur les erreurs de chargement pour ne pas bloquer l'expérience
       return null;
     } finally {
       setLoading(false);
@@ -145,7 +146,7 @@ export const useGameSession = () => {
 
     } catch (error) {
       console.error('Erreur lors de la mise à jour de la session:', error);
-      toast.error("Impossible de mettre à jour la session");
+      // On ne met pas de toast.error ici pour ne pas polluer l'écran à chaque mène
       throw error;
     } finally {
       setLoading(false);
