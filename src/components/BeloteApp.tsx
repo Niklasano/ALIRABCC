@@ -882,15 +882,16 @@ useEffect(() => {
         />
       )}
       
-      <PlayerLayout
-        open={showLayoutDialog}
-        onClose={() => setShowLayoutDialog(false)}
-        team1Players={[gameState.team1Player1, gameState.team1Player2].filter(Boolean)}
-        team2Players={[gameState.team2Player1, gameState.team2Player2].filter(Boolean)}
-        onSaveLayout={handleSaveLayout}
-        initialPositions={gameState.players}
-        initialDealer={gameState.currentDealer !== null ? gameState.currentDealer : undefined}
-      />
+			<PlayerLayout
+			  open={showLayoutDialog}
+			  onClose={() => setShowLayoutDialog(false)}
+			  // On s'assure de passer les noms qui sont ACTUELLEMENT dans le gameState
+			  team1Players={[gameState.team1Player1, gameState.team1Player2].filter(Boolean)}
+			  team2Players={[gameState.team2Player1, gameState.team2Player2].filter(Boolean)}
+			  onSaveLayout={handleSaveLayout}
+			  initialPositions={gameState.players}
+			  initialDealer={gameState.currentDealer !== null ? gameState.currentDealer : undefined}
+			/>
       
       <StatsDialog
         open={showStatsDialog}
