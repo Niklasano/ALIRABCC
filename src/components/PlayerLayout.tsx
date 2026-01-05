@@ -23,33 +23,36 @@ const PlayerLayout: React.FC<PlayerLayoutProps> = ({
   initialPositions,
   initialDealer
 }) => {
+  // Liste source des joueurs
   const selectedPlayers = [...team1Players, ...team2Players].filter(Boolean);
   
-  // Initialisation des états
+  // ÉTAT : On initialise strictement à null pour forcer l'utilisateur à choisir
   const [positions, setPositions] = useState<(string | null)[]>([null, null, null, null]);
   const [dealer, setDealer] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
-      // Si on a des données sauvegardées en base de données, on les charge
-      if (initialPositions && initialPositions.length === 4 && initialPositions.every(p => p !== null)) {
+      // On ne charge QUE si des positions existent déjà en base de données (donc après un F5 ou une sauvegarde)
+      // On vérifie que initialPositions contient bien des données et n'est pas juste un tableau vide
+      if (initialPositions && initialPositions.length === 4 && initialPositions.some(p => p !== null)) {
         setPositions([...initialPositions]);
         if (initialDealer !== undefined && initialPositions[initialDealer]) {
           setDealer(initialPositions[initialDealer]);
         }
-      } 
-      // Sinon, si l'état local est vide, on propose la liste brute par défaut
-      else if (positions.every(p => p === null) && selectedPlayers.length === 4) {
-        setPositions(selectedPlayers);
+      } else {
+        // Nouvelle partie : on force le reset à vide pour éviter toute disposition auto
+        setPositions([null, null, null, null]);
+        setDealer(null);
       }
     }
-    // Note: On ne met pas positions dans les dépendances pour éviter les boucles de reset
   }, [open, initialPositions, initialDealer]);
 
-  // Fonction pour filtrer les joueurs déjà choisis dans les autres listes
+  // LOGIQUE D'EXCLUSION : Filtre les joueurs pour qu'un nom ne soit utilisé qu'une seule fois
   const getAvailablePlayersForPosition = (currentIndex: number) => {
-    const otherSelectedPlayers = positions.filter((p, idx) => idx !== currentIndex && p !== null);
-    return selectedPlayers.filter(p => !otherSelectedPlayers.includes(p));
+    // On récupère tous les noms sélectionnés dans les AUTRES cases
+    const namesInOtherBoxes = positions.filter((name, idx) => idx !== currentIndex && name !== null);
+    // On retourne les joueurs qui ne sont pas dans les autres cases
+    return selectedPlayers.filter(player => !namesInOtherBoxes.includes(player));
   };
 
   const handlePositionChange = (index: number, player: string) => {
@@ -57,6 +60,7 @@ const PlayerLayout: React.FC<PlayerLayoutProps> = ({
     newPositions[index] = player;
     setPositions(newPositions);
     
+    // Reset du donneur si le joueur sélectionné comme donneur n'est plus dans la liste
     if (dealer && !newPositions.includes(dealer)) {
       setDealer(null);
     }
@@ -64,7 +68,7 @@ const PlayerLayout: React.FC<PlayerLayoutProps> = ({
 
   const handleSave = () => {
     if (positions.some(p => p === null) || !dealer) {
-      alert("Veuillez sélectionner tous les joueurs et le donneur");
+      alert("Veuillez remplir les 4 positions et désigner le premier donneur.");
       return;
     }
 
@@ -82,27 +86,24 @@ const PlayerLayout: React.FC<PlayerLayoutProps> = ({
         
         <div className="grid grid-cols-3 gap-4 py-4">
           {[0, 1, 2, 3].map((idx) => {
-            // Placement visuel : 0:HG, 1:HD, 2:BG, 3:BD
             const gridClass = idx === 2 ? "col-start-1 row-start-3" : idx === 3 ? "col-start-3 row-start-3" : "";
-            const label = ["Haut Gauche", "Haut Droit", "Bas Gauche", "Bas Droit"][idx];
+            const labels = ["Haut Gauche", "Haut Droit", "Bas Gauche", "Bas Droit"];
             
             return (
               <React.Fragment key={idx}>
                 {idx === 1 && <div></div>}
                 <div className={`flex flex-col items-center ${gridClass}`}>
-                  <Label className="mb-2 text-xs text-muted-foreground text-center">{label}</Label>
+                  <Label className="mb-2 text-xs text-muted-foreground">{labels[idx]}</Label>
                   <Select 
-                    value={positions[idx] || ''} 
-                    onValueChange={(value) => handlePositionChange(idx, value)}
+                    value={positions[idx] || undefined} 
+                    onValueChange={(val) => handlePositionChange(idx, val)}
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue placeholder="Choisir" />
                     </SelectTrigger>
                     <SelectContent>
                       {getAvailablePlayersForPosition(idx).map((player) => (
-                        <SelectItem key={`pos${idx}-${player}`} value={player}>
-                          {player}
-                        </SelectItem>
+                        <SelectItem key={player} value={player}>{player}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -112,28 +113,23 @@ const PlayerLayout: React.FC<PlayerLayoutProps> = ({
             );
           })}
         </div>
-        
+
         <div className="flex flex-col space-y-2 mt-4 border-t pt-4">
-          <Label htmlFor="dealer" className="font-semibold text-center">Premier Donneur :</Label>
-          <Select 
-            value={dealer || ''} 
-            onValueChange={setDealer}
-          >
-            <SelectTrigger id="dealer">
-              <SelectValue placeholder="Sélectionner le donneur" />
+          <Label className="font-semibold text-center">Premier Donneur :</Label>
+          <Select value={dealer || undefined} onValueChange={setDealer}>
+            <SelectTrigger>
+              <SelectValue placeholder="Qui donne en premier ?" />
             </SelectTrigger>
             <SelectContent>
               {positions.filter(Boolean).map((player) => (
-                <SelectItem key={`dealer-${player}`} value={player as string}>
-                  {player}
-                </SelectItem>
+                <SelectItem key={`dealer-${player}`} value={player!}>{player}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         
         <DialogFooter className="mt-6">
-          <Button className="w-full" onClick={handleSave}>Valider et enregistrer</Button>
+          <Button className="w-full" onClick={handleSave}>Valider la disposition</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
