@@ -239,214 +239,175 @@ useEffect(() => {
   }
 };
   
-  // Fonction pour ajouter une manche
-  const handleAddRound = () => {
-    const contratE1Val = CONTRATS[gameState.contratE1];
-    const realiseE1Val = REALISES[gameState.realiseE1];
-    const beloteE1Val = BELOTE_ANNONCES[gameState.beloteE1];
-    const contratE2Val = CONTRATS[gameState.contratE2];
-    const realiseE2Val = REALISES[gameState.realiseE2];
-    const beloteE2Val = BELOTE_ANNONCES[gameState.beloteE2];
+ // Fonction pour ajouter une manche
+const handleAddRound = () => {
+  const contratE1Val = CONTRATS[gameState.contratE1];
+  const realiseE1Val = REALISES[gameState.realiseE1];
+  const beloteE1Val = BELOTE_ANNONCES[gameState.beloteE1];
+  const contratE2Val = CONTRATS[gameState.contratE2];
+  const realiseE2Val = REALISES[gameState.realiseE2];
+  const beloteE2Val = BELOTE_ANNONCES[gameState.beloteE2];
 
-    if (gameState.remarqueE1 !== "N/A" && gameState.remarqueE2 !== "N/A" && gameState.remarqueE1 === gameState.remarqueE2) {
-      toast.error("Impossible d'avoir deux fois la même remarque (Coinche ou Sur Coinche).");
-      return;
-    }
-    
-    if (beloteE1Val + beloteE2Val > 80) {
-      toast.error("La somme des annonces Belote ne peut pas dépasser 80.");
-      return;
-    }
-    
-    if (contratE1Val > 0 && contratE2Val > 0) {
-      toast.error("Un seul contrat par manche.");
-      return;
-    }
+  // --- VALIDATIONS ---
+  if (gameState.remarqueE1 !== "N/A" && gameState.remarqueE2 !== "N/A" && gameState.remarqueE1 === gameState.remarqueE2) {
+    toast.error("Impossible d'avoir deux fois la même remarque (Coinche ou Sur Coinche).");
+    return;
+  }
+  
+  if (beloteE1Val + beloteE2Val > 80) {
+    toast.error("La somme des annonces Belote ne peut pas dépasser 80.");
+    return;
+  }
+  
+  if (contratE1Val > 0 && contratE2Val > 0) {
+    toast.error("Un seul contrat par manche.");
+    return;
+  }
 
-    const totalPoints = 160;
-    let realiseE1Final = realiseE1Val;
-    let realiseE2Final = realiseE2Val;
-    
-    if (contratE1Val >= 500 && realiseE1Final === totalPoints) {
-      realiseE2Final = 0;
-    } else if (contratE2Val >= 500 && realiseE2Final === totalPoints) {
-      realiseE1Final = 0;
-    } else if (contratE1Val > 0 && gameState.realiseE2 === "0") {
-      realiseE2Final = totalPoints - realiseE1Final;
-    } else if (contratE2Val > 0 && gameState.realiseE1 === "0") {
-      realiseE1Final = totalPoints - realiseE2Final;
-    }
+  // --- CALCUL DES SCORES RÉALISÉS ---
+  const totalPoints = 160;
+  let realiseE1Final = realiseE1Val;
+  let realiseE2Final = realiseE2Val;
+  
+  if (contratE1Val >= 500 && realiseE1Final === totalPoints) {
+    realiseE2Final = 0;
+  } else if (contratE2Val >= 500 && realiseE2Final === totalPoints) {
+    realiseE1Final = 0;
+  } else if (contratE1Val > 0 && gameState.realiseE2 === "0") {
+    realiseE2Final = totalPoints - realiseE1Final;
+  } else if (contratE2Val > 0 && gameState.realiseE1 === "0") {
+    realiseE1Final = totalPoints - realiseE2Final;
+  }
 
+  // --- CALCUL DES ÉCARTS ET POINTS ---
+  let ecartE1 = calculerEcart(contratE1Val, realiseE1Final);
+  let ecartE2 = calculerEcart(contratE2Val, realiseE2Final);
+  
+  const [pointsE1, chuteE1] = calculerPoints(
+    contratE1Val, realiseE1Final, beloteE1Val, gameState.remarqueE1,
+    contratE2Val, realiseE2Final, beloteE2Val, gameState.remarqueE2,
+    gameState.realiseE1, gameState.realiseE2
+  );
+  
+  const [pointsE2, chuteE2] = calculerPointsAdverse(
+    contratE1Val, realiseE1Final, beloteE1Val, gameState.remarqueE1,
+    contratE2Val, realiseE2Final, beloteE2Val, gameState.remarqueE2,
+    gameState.realiseE1, gameState.realiseE2
+  );
+
+  const theoE1 = calculerPointsTheoriques(contratE1Val, realiseE1Final, beloteE1Val);
+  const theoE2 = calculerPointsTheoriques(contratE2Val, realiseE2Final, beloteE2Val);
+  
+  let remarqueE1Display: ExtendedRemarque = gameState.remarqueE1;
+  let remarqueE2Display: ExtendedRemarque = gameState.remarqueE2;
+  
+  // Gestion des mentions spéciales dans le tableau
+  if (realiseE1Final === 160 && contratE1Val < 500 && contratE1Val > 0 && 
+      gameState.realiseE1 !== "0 mais pas capot" && gameState.realiseE1 !== "Capot") {
+    remarqueE1Display = "Vous êtes nuls";
+  } else if (realiseE1Final === 160 && contratE1Val < 500 && 
+              gameState.realiseE1 !== "0 mais pas capot" && gameState.realiseE1 !== "Capot") {
+    remarqueE1Display = "Capot non annoncé";
+  }
+  
+  if (realiseE2Final === 160 && contratE2Val < 500 && contratE2Val > 0 && 
+      gameState.realiseE2 !== "0 mais pas capot" && gameState.realiseE2 !== "Capot") {
+    remarqueE2Display = "Vous êtes nuls";
+  } else if (realiseE2Final === 160 && contratE2Val < 500 && 
+              gameState.realiseE2 !== "0 mais pas capot" && gameState.realiseE2 !== "Capot") {
+    remarqueE2Display = "Capot non annoncé";
+  }
+
+  // --- CALCUL DES ÉCARTS THÉORIQUES ---
+  let ecartTheoE1 = 0;
+  let ecartTheoE2 = 0;
+
+  if (remarqueE1Display === "Capot non annoncé" || remarqueE1Display === "Vous êtes nuls") {
+    ecartE1 = 500 - contratE1Val - realiseE1Final;
+  }
+  if (remarqueE2Display === "Capot non annoncé" || remarqueE2Display === "Vous êtes nuls") {
+    ecartE2 = 500 - contratE2Val - realiseE2Final;
+  }
+
+  // Gestion des chutes
+  if (contratE1Val > 0 && chuteE1 === 1) {
+    ecartE1 = (contratE1Val === 500) ? 500 : (contratE1Val === 1000) ? 1000 : 2 * contratE1Val;
+  }
+  if (contratE2Val > 0 && chuteE2 === 1) {
+    ecartE2 = (contratE2Val === 500) ? 500 : (contratE2Val === 1000) ? 1000 : 2 * contratE2Val;
+  }
+
+  const prevEcartTheoE1 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique"] : 0;
+  const prevEcartTheoE2 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique_E2"] : 0;
+
+  if (contratE1Val > 0) {
+    ecartTheoE1 = prevEcartTheoE1 + ecartE1;
+    ecartTheoE2 = prevEcartTheoE2;
+  } else if (contratE2Val > 0) {
+    ecartTheoE1 = prevEcartTheoE1;
+    ecartTheoE2 = prevEcartTheoE2 + ecartE2;
+  } else {
+    ecartTheoE1 = prevEcartTheoE1;
+    ecartTheoE2 = prevEcartTheoE2;
+  }
+
+  // --- GESTION DES ALERTES FLASH (AVEC PRIORITÉ) ---
+  // On vérifie d'abord l'Epicier (Commerce de Gros, etc.)
+  const alerteAffichee = gameActions.checkEpicierCondition(
+    ecartTheoE1, ecartTheoE2, prevEcartTheoE1, prevEcartTheoE2,
+    gameState.contratE1, gameState.realiseE1,
+    gameState.contratE2, gameState.realiseE2,
+    gameState.team1Name, gameState.team2Name
+  );
+
+  // Si l'épicier n'a pas affiché d'alerte, on vérifie "Vous êtes nuls"
+  if (!alerteAffichee) {
     gameActions.checkVousEtesNulsCondition(
-      realiseE1Final,
-      contratE1Val,
-      realiseE2Final,
-      contratE2Val,
-      gameState.team1Name,
-      gameState.team2Name,
-      gameState.realiseE1,
-      gameState.realiseE2
+      realiseE1Final, contratE1Val,
+      realiseE2Final, contratE2Val,
+      gameState.team1Name, gameState.team2Name,
+      gameState.realiseE1, gameState.realiseE2
     );
 
     gameActions.checkLaChatteCondition(
-      contratE1Val,
-      realiseE1Final,
-      contratE2Val,
-      realiseE2Final,
-      gameState.team1Name,
-      gameState.team2Name
+      contratE1Val, realiseE1Final,
+      contratE2Val, realiseE2Final,
+      gameState.team1Name, gameState.team2Name
     );
+  }
 
-    let ecartE1 = calculerEcart(contratE1Val, realiseE1Final);
-    let ecartE2 = calculerEcart(contratE2Val, realiseE2Final);
-    
-    const [pointsE1, chuteE1] = calculerPoints(
-      contratE1Val, realiseE1Final, beloteE1Val, gameState.remarqueE1,
-      contratE2Val, realiseE2Final, beloteE2Val, gameState.remarqueE2,
-      gameState.realiseE1, gameState.realiseE2
-    );
-    
-    const [pointsE2, chuteE2] = calculerPointsAdverse(
-      contratE1Val, realiseE1Final, beloteE1Val, gameState.remarqueE1,
-      contratE2Val, realiseE2Final, beloteE2Val, gameState.remarqueE2,
-      gameState.realiseE1, gameState.realiseE2
-    );
-
-    const theoE1 = calculerPointsTheoriques(contratE1Val, realiseE1Final, beloteE1Val);
-    const theoE2 = calculerPointsTheoriques(contratE2Val, realiseE2Final, beloteE2Val);
-    
-    let remarqueE1Display: ExtendedRemarque = gameState.remarqueE1;
-    let remarqueE2Display: ExtendedRemarque = gameState.remarqueE2;
-    
-    // Ne marquer "Vous êtes nuls" que si ce n'est pas "0 mais pas capot"
-    if (realiseE1Final === 160 && contratE1Val < 500 && contratE1Val > 0 && 
-        gameState.realiseE1 !== "0 mais pas capot" && gameState.realiseE1 !== "Capot") {
-      remarqueE1Display = "Vous êtes nuls";
-    } else if (realiseE1Final === 160 && contratE1Val < 500 && 
-               gameState.realiseE1 !== "0 mais pas capot" && gameState.realiseE1 !== "Capot") {
-      remarqueE1Display = "Capot non annoncé";
-    }
-    
-    if (realiseE2Final === 160 && contratE2Val < 500 && contratE2Val > 0 && 
-        gameState.realiseE2 !== "0 mais pas capot" && gameState.realiseE2 !== "Capot") {
-      remarqueE2Display = "Vous êtes nuls";
-    } else if (realiseE2Final === 160 && contratE2Val < 500 && 
-               gameState.realiseE2 !== "0 mais pas capot" && gameState.realiseE2 !== "Capot") {
-      remarqueE2Display = "Capot non annoncé";
-    }
-    
-    let ecartTheoE1 = 0;
-    let ecartTheoE2 = 0;
-
-    if (remarqueE1Display === "Capot non annoncé" || remarqueE1Display === "Vous êtes nuls") {
-      ecartE1 = 500 - contratE1Val - realiseE1Final;
-    }
-    if (remarqueE2Display === "Capot non annoncé" || remarqueE2Display === "Vous êtes nuls") {
-      ecartE2 = 500 - contratE2Val - realiseE2Final;
-    }
-
-    if (contratE1Val > 0 && chuteE1 === 1) {
-      if (contratE1Val === 500) {
-        ecartE1 = 500;
-      } else if (contratE1Val === 1000) {
-        ecartE1 = 1000;
-      } else {
-        ecartE1 = 2 * contratE1Val;
-      }
-    }
-    
-    if (contratE2Val > 0 && chuteE2 === 1) {
-      if (contratE2Val === 500) {
-        ecartE2 = 500;
-      } else if (contratE2Val === 1000) {
-        ecartE2 = 1000;
-      } else {
-        ecartE2 = 2 * contratE2Val;
-      }
-    }
-
-    if (contratE1Val > 0 && chuteE1 === 0 && (contratE1Val === 500 || contratE1Val === 1000)) {
-      ecartE1 = 0;
-    }
-    
-    if (contratE2Val > 0 && chuteE2 === 0 && (contratE2Val === 500 || contratE2Val === 1000)) {
-      ecartE2 = 0;
-    }
-
-    const prevEcartTheoE1 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique"] : 0;
-    const prevEcartTheoE2 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique_E2"] : 0;
-
-    if (contratE1Val > 0) {
-      ecartTheoE1 = prevEcartTheoE1 + ecartE1;
-      ecartTheoE2 = prevEcartTheoE2;
-    } else if (contratE2Val > 0) {
-      ecartTheoE1 = prevEcartTheoE1;
-      ecartTheoE2 = prevEcartTheoE2 + ecartE2;
-    } else {
-      ecartTheoE1 = prevEcartTheoE1;
-      ecartTheoE2 = prevEcartTheoE2;
-    }
-    
-    gameActions.checkEpicierCondition(
-      ecartTheoE1, 
-      ecartTheoE2, 
-      prevEcartTheoE1, 
-      prevEcartTheoE2,
-      gameState.contratE1,
-      gameState.realiseE1,
-      gameState.contratE2,
-      gameState.realiseE2,
-      gameState.team1Name,
-      gameState.team2Name
-    );
-    
-    const newRound = createNewBeloteRow(
-      gameState.data,
-      gameState.data.length + 1,
-      contratE1Val,
-      chuteE1,
-      realiseE1Final,
-      ecartE1,
-      ecartTheoE1,
-      gameState.beloteE1,
-      remarqueE1Display,
-      pointsE1,
-      contratE2Val,
-      chuteE2,
-      realiseE2Final,
-      ecartE2,
-      ecartTheoE2,
-      gameState.beloteE2,
-      remarqueE2Display,
-      pointsE2,
-      theoE1,
-      theoE2,
-      gameState.cardColorE1,
-      gameState.cardColorE2
-    );
-    
-    const newData = [...gameState.data, newRound];
-    gameState.setData(newData);
-    
-    gameActions.updateDisplayTables(
-      newData,
-      gameState.setTeam1Rows,
-      gameState.setTeam2Rows,
-      gameState.setTeam1Score,
-      gameState.setTeam2Score,
-      gameState.setTeam1Winner,
-      gameState.setTeam2Winner,
-      gameState.victoryPoints
-    );
-    
-    if (gameState.currentDealer !== null) {
-      gameState.setCurrentDealer(getNextDealer(gameState.currentDealer));
-    }
-    
-    gameState.resetInputs();
-    
+  // --- CRÉATION ET MISE À JOUR DE LA DATA ---
+  const newRound = createNewBeloteRow(
+    gameState.data,
+    gameState.data.length + 1,
+    contratE1Val, chuteE1, realiseE1Final, ecartE1, ecartTheoE1, gameState.beloteE1, remarqueE1Display, pointsE1,
+    contratE2Val, chuteE2, realiseE2Final, ecartE2, ecartTheoE2, gameState.beloteE2, remarqueE2Display, pointsE2,
+    theoE1, theoE2,
+    gameState.cardColorE1, gameState.cardColorE2
+  );
+  
+  const newData = [...gameState.data, newRound];
+  gameState.setData(newData);
+  
+  gameActions.updateDisplayTables(
+    newData,
+    gameState.setTeam1Rows, gameState.setTeam2Rows,
+    gameState.setTeam1Score, gameState.setTeam2Score,
+    gameState.setTeam1Winner, gameState.setTeam2Winner,
+    gameState.victoryPoints
+  );
+  
+  if (gameState.currentDealer !== null) {
+    gameState.setCurrentDealer(getNextDealer(gameState.currentDealer));
+  }
+  
+  gameState.resetInputs();
+  
+  // On n'affiche le toast de succès que si aucune grosse alerte n'a pris l'écran
+  if (!alerteAffichee) {
     toast.success(`Manche ${gameState.data.length + 1} ajoutée !`);
-  };
+  }
+};
 
   // Fonction pour annuler la dernière manche
   const handleCancelRound = () => {
