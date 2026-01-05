@@ -210,7 +210,7 @@ useEffect(() => {
     toast.info("Les noms d'équipe sont maintenant basés sur les joueurs sélectionnés");
   };
   
-  // Fonction pour sauvegarder la disposition des joueurs et générer URL
+// Fonction pour sauvegarder la disposition des joueurs et générer URL
   const handleSaveLayout = async (positions: string[], dealerIndex: number) => {
     // 1. Mise à jour de l'interface locale
     gameState.setPlayers(positions);
@@ -220,32 +220,30 @@ useEffect(() => {
     // 2. Sauvegarde dans Supabase
     if (urlParam) {
       try {
+        // Tentative de mise à jour si la session existe déjà
         await gameSession.updateGameSession(urlParam, {
           players_layout: positions,
           current_dealer: dealerIndex
         });
-        // Optionnel : toast.success("Position des joueurs mise à jour");
       } catch (error) {
-        console.error("Erreur lors de la sauvegarde de la disposition:", error);
+        // Si la mise à jour échoue (session pas encore créée), on tente la création
+        console.log("Session inexistante, tentative de création...");
+        try {
+          await gameSession.createGameSession(
+            gameState.team1Player1,
+            gameState.team1Player2,
+            gameState.team2Player1,
+            gameState.team2Player2,
+            positions,
+            dealerIndex,
+            gameState.victoryPoints
+          );
+        } catch (createError) {
+          console.error('Erreur lors de la création de la session:', createError);
+        }
       }
     }
-  };
-    
-    // Générer une URL unique pour la session multijoueur
-    try {
-      await gameSession.createGameSession(
-        gameState.team1Player1,
-        gameState.team1Player2,
-        gameState.team2Player1,
-        gameState.team2Player2,
-        positions,
-        dealerIndex,
-        gameState.victoryPoints
-      );
-    } catch (error) {
-      console.error('Erreur lors de la création de la session:', error);
-    }
-  };
+  }; // <--- UNE SEULE FERMETURE ICI à la ligne 248
   
   // Fonction pour ajouter une manche
   const handleAddRound = () => {
