@@ -124,8 +124,8 @@ useEffect(() => {
           const hasAllPlayers = session.team1_player1 && session.team1_player2 && 
                                session.team2_player1 && session.team2_player2;
 
-          if (hasAllPlayers) {
-            setTeamNamesValid(true); // Débloque le bouton "Disposition"
+			if (hasAllPlayers) {
+            // Supprimé : setTeamNamesValid(true); (cette ligne causait l'erreur)
             gameState.setTeamSetupComplete(true); // Affiche le tableau des scores
           }
           // ------------------
