@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ALIRABCC</string>
+    <string name="title_activity_main">ALIRABCC</string>
+    <string name="package_name">com.alirabcc.belote</string>
+    <string name="custom_url_scheme">com.alirabcc.belote</string>
+</resources>
