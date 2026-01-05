@@ -92,11 +92,13 @@ const BeloteApp: React.FC = () => {
   // Effet pour charger une session existante si présente dans l'URL
   useEffect(() => {
     const loadSessionFromUrl = async () => {
-      if (urlParam && !gameState.teamSetupComplete) {
+      // On charge les données dès qu'un ID est présent dans l'URL
+      if (urlParam) {
         try {
           const session = await gameSession.loadGameSession(urlParam);
+          
           if (session) {
-            // Charger les données de la session dans le state
+            // Restauration des joueurs et du placement
             gameState.setTeam1Player1(session.team1_player1 || '');
             gameState.setTeam1Player2(session.team1_player2 || '');
             gameState.setTeam2Player1(session.team2_player1 || '');
@@ -104,14 +106,16 @@ const BeloteApp: React.FC = () => {
             gameState.setPlayers(session.players_layout || []);
             gameState.setCurrentDealer(session.current_dealer || 0);
             gameState.setVictoryPoints(session.victory_points || '2000');
-            gameState.setData(session.game_data || []);
+            
+            // Restauration des scores et de l'historique des mènes
+            const savedData = (session.game_data as any) || [];
+            gameState.setData(savedData);
             gameState.setTeam1Score(session.team1_score || 0);
             gameState.setTeam2Score(session.team2_score || 0);
-            gameState.setTeamSetupComplete(true);
             
-            // Mettre à jour les tableaux d'affichage
+            // Mise à jour immédiate des tableaux visuels
             gameActions.updateDisplayTables(
-              session.game_data || [],
+              savedData,
               gameState.setTeam1Rows,
               gameState.setTeam2Rows,
               gameState.setTeam1Score,
@@ -120,20 +124,19 @@ const BeloteApp: React.FC = () => {
               gameState.setTeam2Winner,
               session.victory_points || '2000'
             );
-            
-            toast.success("Session de jeu chargée avec succès !");
-          } else {
-            // Si la session n'existe pas, rediriger vers la page d'accueil
-            toast.error("Session introuvable, redirection vers l'accueil");
-            window.location.href = '/';
+
+            // Si des joueurs sont déjà définis, on considère le setup comme complet
+            if (session.team1_player1 && session.team2_player1) {
+              gameState.setTeamSetupComplete(true);
+            }
           }
         } catch (error) {
-          console.error('Erreur lors du chargement de la session:', error);
-          toast.error("Erreur lors du chargement, redirection vers l'accueil");
-          window.location.href = '/';
+          console.error('Erreur de synchronisation session:', error);
         }
       }
     };
+    loadSessionFromUrl();
+  }, [urlParam]); // Se déclenche si l'URL change ou au rafraîchissement
 
     loadSessionFromUrl();
   }, [urlParam]);
