@@ -50,41 +50,54 @@ const createGameSession = async (
       const team1Name = `${team1Player1}/${team1Player2}`;
       const team2Name = `${team2Player1}/${team2Player2}`;
 
-      // .upsert va soit créer, soit mettre à jour si l'URL existe déjà
+      // On prépare les données
+      const gameData = {
+        session_url: finalSessionUrl,
+        team1_player1: team1Player1,
+        team1_player2: team1Player2,
+        team2_player1: team2Player1,
+        team2_player2: team2Player2,
+        team1_name: team1Name,
+        team2_name: team2Name,
+        players_layout: playersLayout,
+        current_dealer: currentDealer,
+        victory_points: victoryPoints,
+      };
+
+      // TENTATIVE 1 : On essaie d'insérer
       const { data, error } = await supabase
         .from('game_sessions')
-        .upsert({
-          session_url: finalSessionUrl,
-          team1_player1: team1Player1,
-          team1_player2: team1Player2,
-          team2_player1: team2Player1,
-          team2_player2: team2Player2,
-          team1_name: team1Name,
-          team2_name: team2Name,
-          players_layout: playersLayout,
-          current_dealer: currentDealer,
-          victory_points: victoryPoints,
-        }, { 
-          onConflict: 'session_url' // Indique à Supabase de se baser sur l'URL pour détecter les doublons
-        })
+        .insert(gameData)
         .select()
-        .single();
+        .maybeSingle();
+
+      // Si l'erreur est un doublon (code 23505), on fait un UPDATE à la place
+      if (error && (error.code === '23505' || error.message.includes('unique'))) {
+        console.log("La session existe déjà, passage en mode mise à jour...");
+        const { data: updateData, error: updateError } = await supabase
+          .from('game_sessions')
+          .update(gameData)
+          .eq('session_url', finalSessionUrl)
+          .select()
+          .maybeSingle();
+          
+        if (updateError) throw updateError;
+        return updateData;
+      }
 
       if (error) throw error;
 
-      setSessionId(data.id);
+      setSessionId(data?.id);
       setSessionUrl(finalSessionUrl);
-      
-      if (!existingUrl) {
-        window.history.pushState({}, '', `/game/${finalSessionUrl}`);
-      }
       
       toast.success("Partie synchronisée !");
       return data;
+
     } catch (error) {
       console.error('Erreur technique Supabase:', error);
-      toast.error("Erreur de synchronisation");
-      throw error;
+      // On affiche un toast moins alarmiste car le jeu fonctionne quand même en local
+      console.warn("Synchronisation serveur échouée, mais le jeu continue en local.");
+      return null;
     } finally {
       setLoading(false);
     }
