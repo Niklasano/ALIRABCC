@@ -237,10 +237,10 @@ useEffect(() => {
 			  gameState.team1Player2,
 			  gameState.team2Player1,
 			  gameState.team2Player2,
-			  positions,
-			  dealerIndex,
+			  positions, // positions venant du dialogue
+			  dealerIndex, // dealer venant du dialogue
 			  gameState.victoryPoints,
-			  urlParam // <--- N'OUBLIE PAS DE PASSER urlParam ICI
+			  urlParam // IMPORTANT : on passe l'ID de l'URL ici
 			);
         console.log("Session créée avec succès.");
       }

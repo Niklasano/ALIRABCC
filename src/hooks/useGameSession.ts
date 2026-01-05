@@ -34,8 +34,7 @@ export const useGameSession = () => {
   };
 
   // Créer une nouvelle session de jeu
-// Créer une nouvelle session de jeu
-  const createGameSession = async (
+const createGameSession = async (
     team1Player1: string,
     team1Player2: string,
     team2Player1: string,
@@ -43,20 +42,18 @@ export const useGameSession = () => {
     playersLayout: string[],
     currentDealer: number,
     victoryPoints: string = '2000',
-    existingUrl?: string // <--- Ajout d'un paramètre optionnel
+    existingUrl?: string
   ) => {
     setLoading(true);
     try {
-      // Si une URL existe déjà (venant de l'URL du navigateur), on l'utilise. 
-      // Sinon on en génère une.
       const finalSessionUrl = existingUrl || generateSessionUrl();
-      
       const team1Name = `${team1Player1}/${team1Player2}`;
       const team2Name = `${team2Player1}/${team2Player2}`;
 
+      // .upsert va soit créer, soit mettre à jour si l'URL existe déjà
       const { data, error } = await supabase
         .from('game_sessions')
-        .insert({
+        .upsert({
           session_url: finalSessionUrl,
           team1_player1: team1Player1,
           team1_player2: team1Player2,
@@ -67,6 +64,8 @@ export const useGameSession = () => {
           players_layout: playersLayout,
           current_dealer: currentDealer,
           victory_points: victoryPoints,
+        }, { 
+          onConflict: 'session_url' // Indique à Supabase de se baser sur l'URL pour détecter les doublons
         })
         .select()
         .single();
@@ -76,17 +75,15 @@ export const useGameSession = () => {
       setSessionId(data.id);
       setSessionUrl(finalSessionUrl);
       
-      // On ne met à jour l'historique que si c'est une nouvelle URL générée
       if (!existingUrl) {
-        const gameUrl = `/game/${finalSessionUrl}`;
-        window.history.pushState({}, '', gameUrl);
+        window.history.pushState({}, '', `/game/${finalSessionUrl}`);
       }
       
-      toast.success("Partie synchronisée avec succès !");
+      toast.success("Partie synchronisée !");
       return data;
     } catch (error) {
-      console.error('Erreur lors de la création de la session:', error);
-      toast.error("Impossible de synchroniser la partie");
+      console.error('Erreur technique Supabase:', error);
+      toast.error("Erreur de synchronisation");
       throw error;
     } finally {
       setLoading(false);
