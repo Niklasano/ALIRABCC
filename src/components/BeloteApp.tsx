@@ -80,8 +80,13 @@ const BeloteApp: React.FC = () => {
     ((gameState.contratE1 !== "0" && gameState.realiseE1 !== "0") || 
      (gameState.contratE2 !== "0" && gameState.realiseE2 !== "0"));
 
-  // Effet pour vérifier si les noms d'équipe sont valides (au moins 2 joueurs par équipe)
-  const [teamNamesValid, setTeamNamesValid] = useState<boolean>(false);
+  // Au lieu du useState, on calcule la validité en temps réel
+const teamNamesValid = Boolean(
+  gameState.team1Player1 && 
+  gameState.team1Player2 && 
+  gameState.team2Player1 && 
+  gameState.team2Player2
+);
   
 useEffect(() => {
   const loadSessionFromUrl = async () => {
@@ -207,9 +212,24 @@ useEffect(() => {
   
   // Fonction pour sauvegarder la disposition des joueurs et générer URL
   const handleSaveLayout = async (positions: string[], dealerIndex: number) => {
+    // 1. Mise à jour de l'interface locale
     gameState.setPlayers(positions);
     gameState.setCurrentDealer(dealerIndex);
     gameState.setTeamSetupComplete(true);
+
+    // 2. Sauvegarde dans Supabase
+    if (urlParam) {
+      try {
+        await gameSession.updateGameSession(urlParam, {
+          players_layout: positions,
+          current_dealer: dealerIndex
+        });
+        // Optionnel : toast.success("Position des joueurs mise à jour");
+      } catch (error) {
+        console.error("Erreur lors de la sauvegarde de la disposition:", error);
+      }
+    }
+  };
     
     // Générer une URL unique pour la session multijoueur
     try {
