@@ -83,22 +83,13 @@ const BeloteApp: React.FC = () => {
   // Effet pour vérifier si les noms d'équipe sont valides (au moins 2 joueurs par équipe)
   const [teamNamesValid, setTeamNamesValid] = useState<boolean>(false);
   
-  useEffect(() => {
-    const team1Valid = gameState.team1Player1 && gameState.team1Player2;
-    const team2Valid = gameState.team2Player1 && gameState.team2Player2;
-    setTeamNamesValid(Boolean(team1Valid && team2Valid));
-  }, [gameState.team1Player1, gameState.team1Player2, gameState.team2Player1, gameState.team2Player2]);
-  
-  // Effet pour charger une session existante si présente dans l'URL
-  useEffect(() => {
+useEffect(() => {
     const loadSessionFromUrl = async () => {
-      // On charge les données dès qu'un ID est présent dans l'URL
       if (urlParam) {
         try {
           const session = await gameSession.loadGameSession(urlParam);
           
           if (session) {
-            // Restauration des joueurs et du placement
             gameState.setTeam1Player1(session.team1_player1 || '');
             gameState.setTeam1Player2(session.team1_player2 || '');
             gameState.setTeam2Player1(session.team2_player1 || '');
@@ -107,13 +98,11 @@ const BeloteApp: React.FC = () => {
             gameState.setCurrentDealer(session.current_dealer || 0);
             gameState.setVictoryPoints(session.victory_points || '2000');
             
-            // Restauration des scores et de l'historique des mènes
             const savedData = (session.game_data as any) || [];
             gameState.setData(savedData);
             gameState.setTeam1Score(session.team1_score || 0);
             gameState.setTeam2Score(session.team2_score || 0);
             
-            // Mise à jour immédiate des tableaux visuels
             gameActions.updateDisplayTables(
               savedData,
               gameState.setTeam1Rows,
@@ -125,7 +114,6 @@ const BeloteApp: React.FC = () => {
               session.victory_points || '2000'
             );
 
-            // Si des joueurs sont déjà définis, on considère le setup comme complet
             if (session.team1_player1 && session.team2_player1) {
               gameState.setTeamSetupComplete(true);
             }
@@ -135,11 +123,9 @@ const BeloteApp: React.FC = () => {
         }
       }
     };
-    loadSessionFromUrl();
-  }, [urlParam]); // Se déclenche si l'URL change ou au rafraîchissement
 
     loadSessionFromUrl();
-  }, [urlParam]);
+  }, [urlParam]); // <--- La ligne 142 est ici. Assurez-vous d'avoir bien "});" après le crochet.
 
   // Effet pour sauvegarder automatiquement la partie en cours dans Supabase
   useEffect(() => {
