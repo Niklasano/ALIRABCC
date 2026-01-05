@@ -26,38 +26,42 @@ export const useGameActions = () => {
 
   // Fonction pour vérifier si un écart théorique d'au moins 30 points est atteint
   const checkEpicierCondition = (
-    ecartTheoE1: number, 
-    ecartTheoE2: number, 
-    prevEcartTheoE1: number, 
-    prevEcartTheoE2: number,
-    contratE1: string,
-    realiseE1: string,
-    contratE2: string,
-    realiseE2: string,
-    team1Name: string,
-    team2Name: string
-  ) => {
-    const newEcartE1 = ecartTheoE1 - prevEcartTheoE1;
-    const newEcartE2 = ecartTheoE2 - prevEcartTheoE2;
-    
-    if (newEcartE1 >= 30 && contratE1 !== "0" && parseInt(realiseE1) >= parseInt(contratE1)) {
-      setEpicierAlert({
-        show: true,
-        teamName: team1Name,
-        ecartTheo: newEcartE1
-      });
-      return;
-    }
-    
-    if (newEcartE2 >= 30 && contratE2 !== "0" && parseInt(realiseE2) >= parseInt(contratE2)) {
-      setEpicierAlert({
-        show: true,
-        teamName: team2Name,
-        ecartTheo: newEcartE2
-      });
-      return;
-    }
-  };
+  ecartTheoE1: number, 
+  ecartTheoE2: number, 
+  prevEcartTheoE1: number, 
+  prevEcartTheoE2: number,
+  contratE1: string,
+  realiseE1: string,
+  contratE2: string,
+  realiseE2: string,
+  team1Name: string,
+  team2Name: string
+) => {
+  const newEcartE1 = ecartTheoE1 - prevEcartTheoE1;
+  const newEcartE2 = ecartTheoE2 - prevEcartTheoE2;
+  
+  // Vérification Équipe 1
+  if (newEcartE1 >= 30 && contratE1 !== "0" && parseInt(realiseE1) >= parseInt(contratE1)) {
+    setEpicierAlert({
+      show: true,
+      teamName: team1Name,
+      ecartTheo: newEcartE1
+    });
+    return true; // ALERTE LANCÉE -> BLOQUE LES AUTRES
+  }
+  
+  // Vérification Équipe 2
+  if (newEcartE2 >= 30 && contratE2 !== "0" && parseInt(realiseE2) >= parseInt(contratE2)) {
+    setEpicierAlert({
+      show: true,
+      teamName: team2Name,
+      ecartTheo: newEcartE2
+    });
+    return true; // ALERTE LANCÉE -> BLOQUE LES AUTRES
+  }
+
+  return false; // AUCUNE ALERTE ÉPICIER
+};
 
   // Fonction pour vérifier si une équipe fait un capot sans l'avoir annoncé
   const checkVousEtesNulsCondition = (

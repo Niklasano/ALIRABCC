@@ -43,20 +43,23 @@ const BeloteTable: React.FC<BeloteTableProps> = ({ teamName, rows }) => {
   };
 
   const renderAlertBadge = (alerte: AlertType) => {
-    if (!alerte) return null;
-    const alertStyles: Record<string, { bg: string; text: string }> = {
-      "Épicerie": { bg: "bg-orange-500", text: "text-white" },
-      "Épicerie Fine": { bg: "bg-yellow-500", text: "text-black" },
-      "Commerce de Gros": { bg: "bg-red-600", text: "text-white" },
-      "Vous êtes nuls": { bg: "bg-purple-600", text: "text-white" },
-    };
-    const style = alertStyles[alerte] || { bg: "bg-muted", text: "text-foreground" };
-    return (
-      <Badge className={`${style.bg} ${style.text} text-[8px] px-1 py-0.5 whitespace-nowrap leading-none`}>
-        {alerte}
-      </Badge>
-    );
+  if (!alerte) return null;
+
+  const alertStyles: Record<string, string> = {
+    "Épicerie": "bg-orange-500 text-white border-orange-600",
+    "Épicerie Fine": "bg-yellow-500 text-black border-yellow-600",
+    "Commerce de Gros": "bg-red-600 text-white border-red-700",
+    "Vous êtes nuls": "bg-purple-600 text-white border-purple-700",
   };
+
+  const badgeClass = alertStyles[alerte] || "bg-muted text-foreground";
+
+  return (
+    <Badge className={`${badgeClass} text-[8px] px-1 py-0.5 whitespace-nowrap leading-none border shadow-md font-bold uppercase`}>
+      {alerte}
+    </Badge>
+  );
+};
 
   // Gestion précise des largeurs pour éviter les chevauchements
   const getHeaderWidth = (header: string) => {
