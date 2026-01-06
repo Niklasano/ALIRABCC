@@ -298,24 +298,44 @@ const handleAddRound = () => {
   const theoE1 = calculerPointsTheoriques(contratE1Val, realiseE1Final, beloteE1Val);
   const theoE2 = calculerPointsTheoriques(contratE2Val, realiseE2Final, beloteE2Val);
   
+  // --- GESTION DES REMARQUES DANS LE TABLEAU ---
   let remarqueE1Display: ExtendedRemarque = gameState.remarqueE1;
   let remarqueE2Display: ExtendedRemarque = gameState.remarqueE2;
-  
-  // Gestion des mentions spéciales dans le tableau
-  if (realiseE1Final === 160 && contratE1Val < 500 && contratE1Val > 0 && 
-      gameState.realiseE1 !== "0 mais pas capot" && gameState.realiseE1 !== "Capot") {
-    remarqueE1Display = "Vous êtes nuls";
-  } else if (realiseE1Final === 160 && contratE1Val < 500 && 
-              gameState.realiseE1 !== "0 mais pas capot" && gameState.realiseE1 !== "Capot") {
-    remarqueE1Display = "Capot non annoncé";
+
+  // Équipe 1 : On affiche "Épicier" QUE si elle gagne son contrat (chuteE1 === 0)
+  if (contratE1Val > 0 && chuteE1 === 0) {
+    if (ecartE1 >= 50) remarqueE1Display = "COMMERCE DE GROS";
+    else if (ecartE1 >= 40) remarqueE1Display = "ÉPICERIE FINE";
+    else if (ecartE1 >= 30) remarqueE1Display = "ÉPICERIE";
   }
-  
-  if (realiseE2Final === 160 && contratE2Val < 500 && contratE2Val > 0 && 
-      gameState.realiseE2 !== "0 mais pas capot" && gameState.realiseE2 !== "Capot") {
+
+  // Équipe 2 : Idem
+  if (contratE2Val > 0 && chuteE2 === 0) {
+    if (ecartE2 >= 50) remarqueE2Display = "COMMERCE DE GROS";
+    else if (ecartE2 >= 40) remarqueE2Display = "ÉPICERIE FINE";
+    else if (ecartE2 >= 30) remarqueE2Display = "ÉPICERIE";
+  }
+
+  // Gestion du message "Vous êtes nuls" (si l'équipe qui a pris fait 0)
+  if (realiseE1Final === 160 && contratE1Val > 0 && gameState.realiseE1 !== "0 mais pas capot" && gameState.realiseE1 !== "Capot") {
+    remarqueE1Display = "Vous êtes nuls";
+  }
+  if (realiseE2Final === 160 && contratE2Val > 0 && gameState.realiseE2 !== "0 mais pas capot" && gameState.realiseE2 !== "Capot") {
     remarqueE2Display = "Vous êtes nuls";
-  } else if (realiseE2Final === 160 && contratE2Val < 500 && 
-              gameState.realiseE2 !== "0 mais pas capot" && gameState.realiseE2 !== "Capot") {
-    remarqueE2Display = "Capot non annoncé";
+  }
+
+  // --- DÉCLENCHEMENT VIDÉO LA CHATTE ---
+  const namesE1 = [gameState.team1Player1, gameState.team1Player2].map(n => n?.toLowerCase() || "");
+  const namesE2 = [gameState.team2Player1, gameState.team2Player2].map(n => n?.toLowerCase() || "");
+  const exclus = ["nico", "petit ageorges"];
+  
+  const isExcluE1 = namesE1.some(n => exclus.some(ex => n.includes(ex)));
+  const isExcluE2 = namesE2.some(n => exclus.some(ex => n.includes(ex)));
+
+  // La vidéo se lance si Capot réussi (160) par le preneur, sans les joueurs exclus
+  if ((contratE1Val > 0 && realiseE1Final === 160 && !isExcluE1) || 
+      (contratE2Val > 0 && realiseE2Final === 160 && !isExcluE2)) {
+    gameActions.setLaChatteAlert({ show: true });
   }
 
   // --- CALCUL DES ÉCARTS THÉORIQUES ---
