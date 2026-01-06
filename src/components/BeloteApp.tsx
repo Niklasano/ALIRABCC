@@ -900,16 +900,12 @@ const handleAddRound = () => {
       )}
       
       {gameActions.epicierAlert && gameActions.epicierAlert.show && (
-  <EpicierAlert 
-    teamName={gameActions.epicierAlert.teamName} 
-    ecartTheo={gameActions.epicierAlert.ecartTheo}
-    onClose={() => gameActions.setEpicierAlert(null)} 
-    // Sécurité 1 : On bloque si c'est une chute
-    isChute={(contratE1Val > 0 && chuteE1 === 1) || (contratE2Val > 0 && chuteE2 === 1)}
-    // Sécurité 2 : On bloque si c'est un Capot (250) ou une Générale (500)
-    isSpecial={contratE1Val >= 250 || contratE2Val >= 250}
-  />
-)}
+        <EpicierAlert 
+          teamName={gameActions.epicierAlert.teamName} 
+          ecartTheo={gameActions.epicierAlert.ecartTheo}
+          onClose={() => gameActions.setEpicierAlert(null)} 
+        />
+      )}
       
       {gameActions.vousEtesNulsAlert && gameActions.vousEtesNulsAlert.show && (
         <VousEtesNulsAlert 

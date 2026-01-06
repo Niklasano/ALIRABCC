@@ -4,37 +4,19 @@ interface EpicierAlertProps {
   teamName: string;
   ecartTheo: number;
   onClose: () => void;
-  // Ajout de ces deux propriétés pour filtrer l'affichage
-  isSpecial?: boolean; // True si Capot ou Générale
-  isChute?: boolean;   // True si l'équipe a chuté
 }
 
-const EpicierAlert: React.FC<EpicierAlertProps> = ({ 
-  teamName, 
-  ecartTheo, 
-  onClose, 
-  isSpecial = false, 
-  isChute = false 
-}) => {
+const EpicierAlert: React.FC<EpicierAlertProps> = ({ teamName, ecartTheo, onClose }) => {
   const [isVisible, setIsVisible] = useState(true);
   
   useEffect(() => {
-    // Si on ne doit pas l'afficher, on ferme immédiatement
-    if (isChute || isSpecial) {
-      onClose();
-      return;
-    }
-
     const timer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(onClose, 500);
     }, 3000);
     
     return () => clearTimeout(timer);
-  }, [onClose, isChute, isSpecial]);
-
-  // SÉCURITÉ : Ne rien rendre du tout si condition spéciale ou chute
-  if (!isVisible || isChute || isSpecial) return null;
+  }, [onClose]);
 
   // 1. Déterminer le message
   const getMessage = () => {
@@ -43,13 +25,15 @@ const EpicierAlert: React.FC<EpicierAlertProps> = ({
     return "ÉPICERIE";
   };
 
-  // 2. Déterminer la couleur
+  // 2. Déterminer la couleur (Harmonisée avec le tableau)
   const getColorClass = () => {
-    if (ecartTheo >= 50) return "bg-red-600 text-white";
-    if (ecartTheo >= 40) return "bg-yellow-500 text-black";
-    return "bg-orange-500 text-white";
+    if (ecartTheo >= 50) return "bg-red-600 text-white";    // ROUGE
+    if (ecartTheo >= 40) return "bg-yellow-500 text-black"; // JAUNE
+    return "bg-orange-500 text-white";                      // ORANGE
   };
 
+  if (!isVisible) return null;
+  
   return (
     <div className="fixed inset-0 flex items-center justify-center z-[100] animate-in fade-in">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
