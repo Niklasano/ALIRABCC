@@ -24,43 +24,45 @@ export const useGameActions = () => {
     show: boolean;
   } | null>(null);
 
- const checkEpicierCondition = (
+  // Fonction pour vérifier si un écart théorique d'au moins 30 points est atteint
+  const checkEpicierCondition = (
   ecartTheoE1: number, 
   ecartTheoE2: number, 
   prevEcartTheoE1: number, 
   prevEcartTheoE2: number,
-  contratE1: number,
-  realiseE1: number,
-  contratE2: number,
-  realiseE2: number,
+  contratE1: string,
+  realiseE1: string,
+  contratE2: string,
+  realiseE2: string,
   team1Name: string,
   team2Name: string
 ) => {
   const newEcartE1 = ecartTheoE1 - prevEcartTheoE1;
   const newEcartE2 = ecartTheoE2 - prevEcartTheoE2;
   
-  // CONDITION ÉQUIPE 1 : Il faut qu'ils aient pris (contrat > 0)
-  if (contratE1 > 0 && newEcartE1 >= 30 && realiseE1 >= contratE1) {
+  // Vérification Équipe 1
+  if (newEcartE1 >= 30 && contratE1 !== "0" && parseInt(realiseE1) >= parseInt(contratE1)) {
     setEpicierAlert({
       show: true,
       teamName: team1Name,
       ecartTheo: newEcartE1
     });
-    return true; 
+    return true; // ALERTE LANCÉE -> BLOQUE LES AUTRES
   }
   
-  // CONDITION ÉQUIPE 2 : Il faut qu'ils aient pris (contrat > 0)
-  if (contratE2 > 0 && newEcartE2 >= 30 && realiseE2 >= contratE2) {
+  // Vérification Équipe 2
+  if (newEcartE2 >= 30 && contratE2 !== "0" && parseInt(realiseE2) >= parseInt(contratE2)) {
     setEpicierAlert({
       show: true,
       teamName: team2Name,
       ecartTheo: newEcartE2
     });
-    return true; 
+    return true; // ALERTE LANCÉE -> BLOQUE LES AUTRES
   }
 
-  return false;
+  return false; // AUCUNE ALERTE ÉPICIER
 };
+
   // Fonction pour vérifier si une équipe fait un capot sans l'avoir annoncé
   const checkVousEtesNulsCondition = (
     realiseE1: number,
