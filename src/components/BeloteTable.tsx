@@ -42,10 +42,11 @@ const BeloteTable: React.FC<BeloteTableProps> = ({ teamName, rows }) => {
     );
   };
 
-  // On ajoute "chuteValue" en paramètre pour savoir s'il faut cacher le badge
   const renderAlertBadge = (alerte: AlertType, chuteValue: string | number) => {
-    // CONDITION MIRACLE : Si l'alerte est vide OU si l'équipe a chuté (1), on n'affiche RIEN
-    if (!alerte || String(chuteValue) === "1") return null;
+    // CONDITION : Si pas d'alerte OU si la colonne Chute est à "Oui" ou "1"
+    if (!alerte || chuteValue === "Oui" || chuteValue === 1 || chuteValue === "1") {
+      return null;
+    }
 
     const alertStyles: Record<string, string> = {
       "Épicerie": "bg-orange-500 text-white border-orange-600",
@@ -108,7 +109,7 @@ const BeloteTable: React.FC<BeloteTableProps> = ({ teamName, rows }) => {
                   row.Belote,
                   <div dangerouslySetInnerHTML={{ __html: row.Remarques }} />,
                   <div dangerouslySetInnerHTML={{ __html: row.Points }} />,
-                  renderAlertBadge(row.Alerte),
+                  renderAlertBadge(row.Alerte, row.Chute),
                   row.Total.text
                 ].map((content, i) => (
                   <TableCell 

@@ -377,6 +377,9 @@ const handleAddRound = () => {
     );
   }
 
+const ecartTheoE1 = contratE1Val > 0 ? prevEcartTheoE1 + ecartE1 : prevEcartTheoE1;
+const ecartTheoE2 = contratE2Val > 0 ? prevEcartTheoE2 + ecartE2 : prevEcartTheoE2;
+
 // --- CRÉATION ET MISE À JOUR DE LA DATA ---
   const newRound = createNewBeloteRow(
     gameState.data,
