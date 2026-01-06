@@ -377,19 +377,12 @@ const handleAddRound = () => {
     );
   }
 
-  // --- LOGIQUE D'AFFICHAGE POUR LA COLONNE ALERTE ---
-  // On crée des variables qui "mentent" au tableau en cas de chute :
-  // On envoie la valeur précédente (prev) au lieu de la nouvelle (ecartTheo)
-  // pour que le composant d'alerte ne voie aucune progression.
-  const affichageAlerteE1 = (contratE1Val > 0 && chuteE1 === 1) ? prevEcartTheoE1 : ecartTheoE1;
-  const affichageAlerteE2 = (contratE2Val > 0 && chuteE2 === 1) ? prevEcartTheoE2 : ecartTheoE2;
-
-  // --- CRÉATION DE LA LIGNE ---
+// --- CRÉATION ET MISE À JOUR DE LA DATA ---
   const newRound = createNewBeloteRow(
     gameState.data,
     gameState.data.length + 1,
-    contratE1Val, chuteE1, realiseE1Final, ecartE1, affichageAlerteE1, gameState.beloteE1, remarqueE1Display, pointsE1,
-    contratE2Val, chuteE2, realiseE2Final, ecartE2, affichageAlerteE2, gameState.beloteE2, remarqueE2Display, pointsE2,
+    contratE1Val, chuteE1, realiseE1Final, ecartE1, ecartTheoE1, gameState.beloteE1, remarqueE1Display, pointsE1,
+    contratE2Val, chuteE2, realiseE2Final, ecartE2, ecartTheoE2, gameState.beloteE2, remarqueE2Display, pointsE2,
     theoE1, theoE2,
     gameState.cardColorE1, gameState.cardColorE2
   );
