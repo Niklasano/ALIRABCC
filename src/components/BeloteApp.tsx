@@ -352,13 +352,7 @@ const handleAddRound = () => {
     ecartTheoE2 = prevEcartTheoE2;
   }
 
-  // --- LOGIQUE POUR LA COLONNE ALERTE UNIQUEMENT ---
-  // Si l'équipe chute, on envoie la valeur "0" ou la valeur précédente au tableau 
-  // pour que le badge ne s'affiche pas, sans fausser le vrai calcul au-dessus.
-  const alerteE1 = (contratE1Val > 0 && chuteE1 === 1) ? prevEcartTheoE1 : ecartTheoE1;
-  const alerteE2 = (contratE2Val > 0 && chuteE2 === 1) ? prevEcartTheoE2 : ecartTheoE2;
-
-  // --- GESTION DES ALERTES FLASH (AVEC PRIORITÉ) ---
+    // --- GESTION DES ALERTES FLASH (AVEC PRIORITÉ) ---
   // On vérifie d'abord l'Epicier (Commerce de Gros, etc.)
   const alerteAffichee = gameActions.checkEpicierCondition(
     ecartTheoE1, ecartTheoE2, prevEcartTheoE1, prevEcartTheoE2,
@@ -383,12 +377,19 @@ const handleAddRound = () => {
     );
   }
 
-  // --- CRÉATION ET MISE À JOUR DE LA DATA ---
+  // --- LOGIQUE D'AFFICHAGE POUR LA COLONNE ALERTE ---
+  // On crée des variables qui "mentent" au tableau en cas de chute :
+  // On envoie la valeur précédente (prev) au lieu de la nouvelle (ecartTheo)
+  // pour que le composant d'alerte ne voie aucune progression.
+  const affichageAlerteE1 = (contratE1Val > 0 && chuteE1 === 1) ? prevEcartTheoE1 : ecartTheoE1;
+  const affichageAlerteE2 = (contratE2Val > 0 && chuteE2 === 1) ? prevEcartTheoE2 : ecartTheoE2;
+
+  // --- CRÉATION DE LA LIGNE ---
   const newRound = createNewBeloteRow(
     gameState.data,
     gameState.data.length + 1,
-    contratE1Val, chuteE1, realiseE1Final, ecartE1, alerteE1, gameState.beloteE1, remarqueE1Display, pointsE1, // <-- alerteE1 ici
-    contratE2Val, chuteE2, realiseE2Final, ecartE2, alerteE2, gameState.beloteE2, remarqueE2Display, pointsE2, // <-- alerteE2 ici
+    contratE1Val, chuteE1, realiseE1Final, ecartE1, affichageAlerteE1, gameState.beloteE1, remarqueE1Display, pointsE1,
+    contratE2Val, chuteE2, realiseE2Final, ecartE2, affichageAlerteE2, gameState.beloteE2, remarqueE2Display, pointsE2,
     theoE1, theoE2,
     gameState.cardColorE1, gameState.cardColorE2
   );
