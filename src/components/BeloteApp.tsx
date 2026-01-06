@@ -340,6 +340,7 @@ const handleAddRound = () => {
   const prevEcartTheoE1 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique"] : 0;
   const prevEcartTheoE2 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique_E2"] : 0;
 
+ // Calcul normal du score (ne pas toucher pour garder les points justes)
   if (contratE1Val > 0) {
     ecartTheoE1 = prevEcartTheoE1 + ecartE1;
     ecartTheoE2 = prevEcartTheoE2;
@@ -350,6 +351,12 @@ const handleAddRound = () => {
     ecartTheoE1 = prevEcartTheoE1;
     ecartTheoE2 = prevEcartTheoE2;
   }
+
+  // --- LOGIQUE POUR LA COLONNE ALERTE UNIQUEMENT ---
+  // Si l'équipe chute, on envoie la valeur "0" ou la valeur précédente au tableau 
+  // pour que le badge ne s'affiche pas, sans fausser le vrai calcul au-dessus.
+  const alerteE1 = (contratE1Val > 0 && chuteE1 === 1) ? prevEcartTheoE1 : ecartTheoE1;
+  const alerteE2 = (contratE2Val > 0 && chuteE2 === 1) ? prevEcartTheoE2 : ecartTheoE2;
 
   // --- GESTION DES ALERTES FLASH (AVEC PRIORITÉ) ---
   // On vérifie d'abord l'Epicier (Commerce de Gros, etc.)
@@ -380,8 +387,8 @@ const handleAddRound = () => {
   const newRound = createNewBeloteRow(
     gameState.data,
     gameState.data.length + 1,
-    contratE1Val, chuteE1, realiseE1Final, ecartE1, ecartTheoE1, gameState.beloteE1, remarqueE1Display, pointsE1,
-    contratE2Val, chuteE2, realiseE2Final, ecartE2, ecartTheoE2, gameState.beloteE2, remarqueE2Display, pointsE2,
+    contratE1Val, chuteE1, realiseE1Final, ecartE1, alerteE1, gameState.beloteE1, remarqueE1Display, pointsE1, // <-- alerteE1 ici
+    contratE2Val, chuteE2, realiseE2Final, ecartE2, alerteE2, gameState.beloteE2, remarqueE2Display, pointsE2, // <-- alerteE2 ici
     theoE1, theoE2,
     gameState.cardColorE1, gameState.cardColorE2
   );
