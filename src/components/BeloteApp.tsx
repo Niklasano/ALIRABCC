@@ -318,24 +318,6 @@ const handleAddRound = () => {
     remarqueE2Display = "Capot non annoncé";
   }
 
-// --- GESTION DES ÉPICERIES (COMMERCE DE GROS) ---
-  // On ne déclenche les alertes QUE si :
-  // 1. L'équipe a réussi son contrat (chute === 0)
-  // 2. Ce n'est PAS un Capot annoncé (250)
-  // 3. Ce n'est PAS une Générale annoncée (500)
-
-  if (chuteE1 === 0 && contratE1Val > 0 && contratE1Val < 250) {
-    if (ecartE1 >= 50) remarqueE1Display = "COMMERCE DE GROS";
-    else if (ecartE1 >= 40) remarqueE1Display = "ÉPICERIE FINE";
-    else if (ecartE1 >= 30) remarqueE1Display = "ÉPICERIE";
-  }
-
-  if (chuteE2 === 0 && contratE2Val > 0 && contratE2Val < 250) {
-    if (ecartE2 >= 50) remarqueE2Display = "COMMERCE DE GROS";
-    else if (ecartE2 >= 40) remarqueE2Display = "ÉPICERIE FINE";
-    else if (ecartE2 >= 30) remarqueE2Display = "ÉPICERIE";
-  }
-
   // --- CALCUL DES ÉCARTS THÉORIQUES ---
   let ecartTheoE1 = 0;
   let ecartTheoE2 = 0;
