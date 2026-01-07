@@ -362,7 +362,7 @@ const updateTablesWithAlerts = (data: any[]) => {
   // Force la mise à jour des lignes avec les alertes
   gameState.setTeam1Rows(t1Rows.map(r => formatDisplayRow(r, 1)));
   gameState.setTeam2Rows(t2Rows.map(r => formatDisplayRow(r, 2)));
-};
+
 
   // --- VALIDATIONS ---
   if (gameState.remarqueE1 !== "N/A" && gameState.remarqueE2 !== "N/A" && gameState.remarqueE1 === gameState.remarqueE2) {
@@ -502,7 +502,7 @@ if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
     );
   }
 
-
+};
 
 // --- CRÉATION ET MISE À JOUR DE LA DATA ---
   const newRound = createNewBeloteRow(
@@ -838,7 +838,7 @@ if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
     }
     
     setShowWinnerAlert(false);
-
+	}
 
   return (
     <div className="container mx-auto px-4 pb-12 max-w-7xl">
