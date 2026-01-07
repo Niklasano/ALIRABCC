@@ -48,12 +48,12 @@ const BeloteTable: React.FC<BeloteTableProps> = ({ teamName, rows }) => {
       return null;
     }
 
-    const alertStyles: Record<string, string> = {
+   const alertStyles: Record<string, string> = {
   "Épicerie": "bg-orange-500 text-white border-orange-600",
   "Épicerie Fine": "bg-yellow-500 text-black border-yellow-600",
   "Commerce de Gros": "bg-red-600 text-white border-red-700",
   "Vous êtes nuls": "bg-purple-600 text-white border-purple-700",
-  "La Chatte": "bg-yellow-400 text-black border-yellow-500", // <--- AJOUTE CETTE LIGNE
+  "La Chatte": "bg-amber-400 text-black border-amber-500 font-extrabold", // Couleur Or
 };
 
     const badgeClass = alertStyles[alerte] || "bg-muted text-foreground";
