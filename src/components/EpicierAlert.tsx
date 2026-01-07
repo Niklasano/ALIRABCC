@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
+// Ajouter ces props dans l'interface [cite: 1, 2]
 interface EpicierAlertProps {
   teamName: string;
   ecartTheo: number;
@@ -11,11 +12,12 @@ interface EpicierAlertProps {
 const EpicierAlert: React.FC<EpicierAlertProps> = ({ 
   teamName, ecartTheo, onClose, isSpecial, isChute 
 }) => {
-  const [isVisible, setIsVisible] = useState(true);
+  // Bloquer l'affichage si c'est un cas exclu
+  if (isChute || isSpecial) return null; [cite: 32, 33]
 
-  // Bloquer l'affichage si c'est un cas exclu (Chute ou Capot/Générale réussi) [cite: 32, 33]
-  if (isChute || isSpecial) return null;
-
+  // Reste du code identique... [cite: 4, 6, 9]
+}
+  
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
@@ -25,14 +27,14 @@ const EpicierAlert: React.FC<EpicierAlertProps> = ({
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  // 1. Déterminer le message [cite: 4, 5]
+  // 1. Déterminer le message
   const getMessage = () => {
     if (ecartTheo >= 50) return "COMMERCE DE GROS";
     if (ecartTheo >= 40) return "ÉPICERIE FINE";
     return "ÉPICERIE";
   };
 
-  // 2. Déterminer la couleur [cite: 6, 7, 8]
+  // 2. Déterminer la couleur (Harmonisée avec le tableau)
   const getColorClass = () => {
     if (ecartTheo >= 50) return "bg-red-600 text-white";    // ROUGE
     if (ecartTheo >= 40) return "bg-yellow-500 text-black"; // JAUNE
