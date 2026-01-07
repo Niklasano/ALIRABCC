@@ -1,22 +1,13 @@
 import React, { useEffect, useState } from 'react';
 
-// Ajouter ces props dans l'interface [cite: 1, 2]
 interface EpicierAlertProps {
   teamName: string;
   ecartTheo: number;
   onClose: () => void;
-  isSpecial?: boolean; // Capot/Générale réussi
-  isChute?: boolean;   // Contrat chuté
 }
 
-const EpicierAlert: React.FC<EpicierAlertProps> = ({ 
-  teamName, ecartTheo, onClose, isSpecial, isChute 
-}) => {
-  // Bloquer l'affichage si c'est un cas exclu
-  if (isChute || isSpecial) return null; [cite: 32, 33]
-
-  // Reste du code identique... [cite: 4, 6, 9]
-}
+const EpicierAlert: React.FC<EpicierAlertProps> = ({ teamName, ecartTheo, onClose }) => {
+  const [isVisible, setIsVisible] = useState(true);
   
   useEffect(() => {
     const timer = setTimeout(() => {
