@@ -1,8 +1,21 @@
-
 import { BELOTE_ANNONCES, BeloteAnnonce, Remarque } from "@/types/belote";
 
+// MODIFICATION ICI : Écart à 0 si Capot/Générale réussi ou si Capot non annoncé (160 fait)
 export const calculerEcart = (contrat: number, realise: number | null): number => {
-  return contrat > 0 && realise !== null ? Math.abs(contrat - realise) : 0;
+  if (contrat <= 0 || realise === null) return 0;
+
+  // Règle 1 : Si c'est un Capot (500) ou une Générale (1000) RÉUSSI, l'écart est 0
+  if ((contrat === 500 || contrat === 1000) && realise === 160) {
+    return 0;
+  }
+
+  // Règle 2 : Si l'équipe fait un Capot (160) sans l'avoir annoncé, 
+  // on peut aussi mettre l'écart à 0 pour prioriser l'alerte "Vous êtes nuls"
+  if (realise === 160 && contrat < 500) {
+    return 0;
+  }
+
+  return Math.abs(contrat - realise);
 };
 
 export const calculerPoints = (
@@ -152,7 +165,6 @@ export const calculerPointsAdverse = (
   realiseLabel?: string,
   realiseLabelAdverse?: string
 ): [number, number] => {
-  // Pour assurer une symétrie complète entre les deux équipes, nous inversons simplement les paramètres
   return calculerPoints(
     contratAdverse,
     realiseAdverse,
@@ -169,5 +181,6 @@ export const calculerPointsAdverse = (
 
 export const calculerPointsTheoriques = (contrat: number, realise: number | null, belote: number): number => {
   if (contrat === 0) return 0;
-  return contrat >= 500 && realise === 160 ? contrat + belote : (realise !== null ? realise + belote : belote);
+  // Si Capot réussi, les points théoriques sont fixés au contrat pour éviter l'explosion de l'écart
+  return (contrat >= 500 && realise === 160) ? contrat + belote : (realise !== null ? realise + belote : belote);
 };
