@@ -1,20 +1,40 @@
 import { BELOTE_ANNONCES, BeloteAnnonce, Remarque } from "@/types/belote";
 
-// MODIFICATION ICI : Écart à 0 si Capot/Générale réussi ou si Capot non annoncé (160 fait)
-export const calculerEcart = (contrat: number, realise: number | null): number => {
+/**
+ * Calcul de l'écart :
+ * - Si Capot/Générale ANNONCÉ et RÉUSSI : écart = 0
+ * - Si Capot NON ANNONCÉ (tous les plis) : écart = 500 - contrat
+ * - Si Générale NON ANNONCÉE : écart = 1000 - contrat
+ * - Si 160 points (mais l'adversaire a marqué via Belote ou autre) : calcul standard abs(contrat - 160)
+ */
+export const calculerEcart = (
+  contrat: number, 
+  realise: number | null, 
+  realiseLabel?: string
+): number => {
   if (contrat <= 0 || realise === null) return 0;
 
-  // Règle 1 : Si c'est un Capot (500) ou une Générale (1000) RÉUSSI, l'écart est 0
+  // 1. Capot (500) ou Générale (1000) ANNONCÉ et RÉUSSI -> Écart 0
   if ((contrat === 500 || contrat === 1000) && realise === 160) {
     return 0;
   }
 
-  // Règle 2 : Si l'équipe fait un Capot (160) sans l'avoir annoncé, 
-  // on peut aussi mettre l'écart à 0 pour prioriser l'alerte "Vous êtes nuls"
-  if (realise === 160 && contrat < 500) {
-    return 0;
+  // 2. Cas où l'équipe fait 160 (Tous les points)
+  if (realise === 160) {
+    // Si c'est un VRAI Capot (tous les plis faits, pas de points adverses)
+    if (realiseLabel === "Capot" && contrat < 500) {
+      return 500 - contrat;
+    }
+    // Si c'est une VRAIE Générale
+    if (realiseLabel === "Générale" && contrat < 1000) {
+      return 1000 - contrat;
+    }
+    // Si c'est 160 points simples (l'autre équipe a marqué, ex: Belote-Rebelote)
+    // On reste sur le calcul standard pour éviter les écarts de 420+ injustifiés
+    return Math.abs(contrat - realise);
   }
 
+  // 3. Calcul standard pour les autres cas
   return Math.abs(contrat - realise);
 };
 
@@ -32,18 +52,15 @@ export const calculerPoints = (
 ): [number, number] => {
   const totalPoints = 160;
   
-  // Vérifier si c'est un vrai capot/générale (160 points avec label "Capot" ou "Générale") ou juste 160 points normaux
   const isRealCapot = realise === totalPoints && (realiseLabel === "Capot" || realiseLabel === "Générale");
   const isRealCapotAdverse = realiseAdverse === totalPoints && (realiseLabelAdverse === "Capot" || realiseLabelAdverse === "Générale");
   
-  // Correction du calcul de chute pour inclure les contrats Capot et Générale
   const chute = (realise !== null && contrat > 0 && (
-    (realise < 80) || // Chute classique : moins de 80 points
-    (contrat >= 500 && realise < totalPoints) || // Chute Capot/Générale : ne pas faire 160
-    (contrat < 500 && realise + belote < contrat) // Chute contrat normal
+    (realise < 80) || 
+    (contrat >= 500 && realise < totalPoints) || 
+    (contrat < 500 && realise + belote < contrat)
   )) ? 1 : 0;
 
-  // Déterminer si coinche ou surcoinche est active
   let coincheActive = "N/A";
   if (remarque === "Sur Coinche" || remarqueAdverse === "Sur Coinche") {
     coincheActive = "Sur Coinche";
@@ -53,65 +70,48 @@ export const calculerPoints = (
 
   const multiplier = coincheActive === "Sur Coinche" ? 4 : coincheActive === "Coinche" ? 2 : 1;
 
-  // Cas où l'équipe n'a pas de contrat (contrat = 0)
   if (contrat === 0) {
     if (contratAdverse > 0) {
-      // Si l'équipe adverse a fait un capot ou une générale (vérifier que c'est un vrai capot)
       if (contratAdverse >= 500 && isRealCapotAdverse) {
         return [remarque !== "Coinche" && remarque !== "Sur Coinche" ? belote : 0, 0];
       }
       
-      // Cas spécial : "0 mais pas capot" - l'équipe qui a pris fait 160 mais sans bonus capot
       if (realiseLabelAdverse === "0 mais pas capot" && realiseAdverse === 0) {
-        // L'équipe qui n'a pas pris marque 0 + belote
         return [belote, chute];
       }
       
-      // Calcul de chute pour l'équipe adverse (correction appliquée)
       const chuteAdverse = (realiseAdverse !== null && contratAdverse > 0 && (
         (realiseAdverse < 80) || 
         (contratAdverse >= 500 && realiseAdverse < totalPoints) || 
         (contratAdverse < 500 && realiseAdverse + beloteAdverse < contratAdverse)
       )) ? 1 : 0;
       
-      // Si l'équipe adverse chute sans coinche
       if (chuteAdverse && coincheActive === "N/A") {
-        // Nouveaux points pour chute Capot/Générale
         if (contratAdverse === 500) {
-          // Capot : 250 + 160 au lieu de 500 + 160
           return [250 + 160 + belote, chute];
         } else if (contratAdverse === 1000) {
-          // Générale : 500 + 160 au lieu de 1000 + 160
           return [500 + 160 + belote, chute];
         }
         return [160 + contratAdverse + belote, chute];
       }
-      // Si l'équipe adverse chute et il y a coinche de l'équipe principale
       else if (chuteAdverse && (remarque === "Coinche" || remarque === "Sur Coinche")) {
-        // Nouveaux points pour chute Capot/Générale avec coinche
         if (contratAdverse === 500) {
-          // Capot avec coinche : (250 + 160) × multiplier
           return [(multiplier * 250) + 160, chute];
         } else if (contratAdverse === 1000) {
-          // Générale avec coinche : (500 + 160) × multiplier
           return [(multiplier * 500) + 160, chute];
         }
         return [(multiplier * contratAdverse) + 160, chute];
       }
-      // Si l'équipe adverse réalise son contrat et il y a coinche de l'équipe principale
       else if (realiseAdverse !== null && !chuteAdverse && 
               (remarque === "Coinche" || remarque === "Sur Coinche") && realiseAdverse >= 80) {
         return [belote, chute];
       }
       
-      // Cas normal où l'équipe adverse a un contrat
       return [realiseAdverse !== null ? totalPoints - realiseAdverse + belote : belote, chute];
     }
-    // Aucune équipe n'a de contrat
     return [belote, chute];
   }
 
-  // Cas où l'équipe a annoncé capot ou générale
   if (contrat >= 500) {
     if (isRealCapot) {
       return [(multiplier * contrat) + belote, chute];
@@ -119,25 +119,17 @@ export const calculerPoints = (
     return [belote, chute];
   }
   
-  // Cas spécial : l'équipe adverse a sélectionné "0 mais pas capot"
-  // Cela signifie que l'équipe courante a fait 160 points SANS bonus capot
   if (realiseLabelAdverse === "0 mais pas capot" && realise === totalPoints && contrat > 0 && contrat < 500) {
-    // Calcul normal sans bonus capot : contrat + 160 + belote
     if (remarqueAdverse === "Coinche" || remarqueAdverse === "Sur Coinche") {
-      // Si coinché/surcoiché par l'équipe adverse
       return [(multiplier * contrat) + realise + belote, chute];
     }
-    // Cas normal
     return [contrat + realise + belote, chute];
   }
   
-  // Cas spécial : l'équipe courante a sélectionné "0 mais pas capot"
   if (realiseLabel === "0 mais pas capot" && realise === 0 && contrat === 0) {
-    // L'équipe qui n'a pas pris et a fait 0 points
     return [belote, chute];
   }
 
-  // Cas où l'équipe a un contrat et l'équipe adverse a coinché/surcoiché
   if (contrat > 0 && (remarqueAdverse === "Coinche" || remarqueAdverse === "Sur Coinche")) {
     if (realise !== null && realise >= 80 && realise + belote >= contrat) {
       return [(multiplier * contrat) + realise + belote, chute];
@@ -145,7 +137,6 @@ export const calculerPoints = (
     return [belote, chute];
   }
 
-  // Cas standard où l'équipe a un contrat
   return [
     (realise !== null && realise + belote >= contrat && realise >= 80) ? 
       contrat + realise + belote : belote,
@@ -179,8 +170,19 @@ export const calculerPointsAdverse = (
   );
 };
 
-export const calculerPointsTheoriques = (contrat: number, realise: number | null, belote: number): number => {
+export const calculerPointsTheoriques = (
+  contrat: number, 
+  realise: number | null, 
+  belote: number,
+  realiseLabel?: string
+): number => {
   if (contrat === 0) return 0;
-  // Si Capot réussi, les points théoriques sont fixés au contrat pour éviter l'explosion de l'écart
+  
+  // Pour le calcul théorique (cumul), on utilise la valeur "boostée" en cas de capot non annoncé
+  if (realise === 160) {
+    if (realiseLabel === "Capot") return 500 + belote;
+    if (realiseLabel === "Générale") return 1000 + belote;
+  }
+
   return (contrat >= 500 && realise === 160) ? contrat + belote : (realise !== null ? realise + belote : belote);
 };

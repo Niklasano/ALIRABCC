@@ -280,8 +280,8 @@ const handleAddRound = () => {
   }
 
   // --- CALCUL DES ÉCARTS ET POINTS ---
-let ecartE1 = calculerEcart(contratE1Val, realiseE1Final);
-let ecartE2 = calculerEcart(contratE2Val, realiseE2Final);
+let ecartE1 = calculerEcart(contratE1Val, realiseE1Final, gameState.realiseE1);
+let ecartE2 = calculerEcart(contratE2Val, realiseE2Final, gameState.realiseE2);
 
 // Nouvelle règle : Écart à 0 si Capot ou Générale réussi
 if ((contratE1Val === 500 || contratE1Val === 1000) && realiseE1Final === 160) {
@@ -304,8 +304,8 @@ if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
     gameState.realiseE1, gameState.realiseE2
   );
 
-  const theoE1 = calculerPointsTheoriques(contratE1Val, realiseE1Final, beloteE1Val);
-  const theoE2 = calculerPointsTheoriques(contratE2Val, realiseE2Final, beloteE2Val);
+  const theoE1 = calculerPointsTheoriques(contratE1Val, realiseE1Final, beloteE1Val, gameState.realiseE1);
+  const theoE2 = calculerPointsTheoriques(contratE2Val, realiseE2Final, beloteE2Val, gameState.realiseE2);
   
   let remarqueE1Display: ExtendedRemarque = gameState.remarqueE1;
   let remarqueE2Display: ExtendedRemarque = gameState.remarqueE2;
