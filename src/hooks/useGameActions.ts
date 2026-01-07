@@ -103,7 +103,7 @@ export const useGameActions = () => {
     // Vérifier si une des équipes contient "Pépite" ou "Petit Ageorges"
     const team1Players = team1Name.toLowerCase();
     const team2Players = team2Name.toLowerCase();
-    const forbiddenNames = ['pépite', 'petit ageorges'];
+    const forbiddenNames = ['nico', 'petit ageorges'];
     
     const hasForbiddenName = forbiddenNames.some(name => 
       team1Players.includes(name) || team2Players.includes(name)

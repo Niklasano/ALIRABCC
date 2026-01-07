@@ -20,7 +20,7 @@ const EpicierAlert: React.FC<EpicierAlertProps> = ({ teamName, ecartTheo, onClos
 
   // 1. Déterminer le message
   const getMessage = () => {
-    if (ecartTheo >= 50) return "COMMERCE DE GROS";
+    if (ecartTheo >= 50) return "ffffffCOMMERCE DE GROS";
     if (ecartTheo >= 40) return "ÉPICERIE FINE";
     return "ÉPICERIE";
   };
