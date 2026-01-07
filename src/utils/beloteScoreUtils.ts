@@ -7,29 +7,22 @@ import { BELOTE_ANNONCES, BeloteAnnonce, Remarque } from "@/types/belote";
  * - Si Générale NON ANNONCÉE : écart = 1000 - contrat (ex: 920)
  * - Si 160 points simples : calcul standard abs(160 - contrat) (ex: 80)
  */
-export const calculerEcart = (
-  contrat: number, 
-  realise: number | null, 
-  realiseLabel?: string
-): number => {
+export const calculerEcart = (contrat: number, realise: number | null, realiseLabel?: string): number => {
   if (contrat <= 0 || realise === null) return 0;
 
-  // 1. Si le contrat annoncé (Capot/Générale) est réussi, l'écart est 0
-  if (contrat === 500 && realise === 160 && realiseLabel === "Capot") return 0;
-  if (contrat === 1000 && realise === 160 && realiseLabel === "Générale") return 0;
-
-  // 2. Gestion des bonus non annoncés (Vrai Capot ou Générale)
-  if (realise === 160) {
-    if (realiseLabel === "Capot") {
-      return Math.abs(500 - contrat);
-    }
-    if (realiseLabel === "Générale") {
-      return Math.abs(1000 - contrat);
-    }
+  // MÈNE 3 : Vraie Générale (Bonus 1000)
+  if (realiseLabel === "Générale") {
+    return (contrat === 1000) ? 0 : Math.abs(1000 - contrat);
   }
 
-  // 3. Calcul standard (pour les points simples ou chutes)
-  return Math.abs(contrat - realise);
+  // MÈNE 2 : Vrai Capot (Bonus 500)
+  if (realiseLabel === "Capot") {
+    return (contrat === 500) ? 0 : Math.abs(500 - contrat);
+  }
+
+  // MÈNE 1 : 160 points simples (Pas de label Capot)
+  // Résultat : 160 - 80 = 80
+  return Math.abs(realise - contrat);
 };
 
 export const calculerPoints = (
@@ -168,16 +161,16 @@ export const calculerPointsTheoriques = (
   contrat: number, 
   realise: number | null, 
   belote: number,
-  realiseLabel?: string
+  realiseLabel?: string // <--- Indispensable !
 ): number => {
   if (contrat === 0) return 0;
   
-  // Pour le cumul, on utilise les paliers 500 et 1000 si le label est présent
-  if (realise === 160) {
-    if (realiseLabel === "Capot") return 500 + belote;
-    if (realiseLabel === "Générale") return 1000 + belote;
-  }
+  // Mène 3 : On force 1000 points si le label est sélectionné
+  if (realiseLabel === "Générale") return 1000 + belote;
+  
+  // Mène 2 : On force 500 points si le label est sélectionné
+  if (realiseLabel === "Capot") return 500 + belote;
 
-  // Cas standard ou Capot/Générale annoncé et réussi
-  return (contrat >= 500 && realise === 160) ? contrat + belote : (realise !== null ? realise + belote : belote);
+  // Mène 1 : Calcul standard (80 fait 160 -> renvoie 160 + belote)
+  return (realise !== null) ? realise + belote : belote;
 };

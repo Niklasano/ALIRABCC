@@ -240,13 +240,81 @@ useEffect(() => {
 };
   
  // Fonction pour ajouter une manche
-const handleAddRound = () => {
-  const contratE1Val = CONTRATS[gameState.contratE1];
-  const realiseE1Val = REALISES[gameState.realiseE1];
-  const beloteE1Val = BELOTE_ANNONCES[gameState.beloteE1];
-  const contratE2Val = CONTRATS[gameState.contratE2];
-  const realiseE2Val = REALISES[gameState.realiseE2];
-  const beloteE2Val = BELOTE_ANNONCES[gameState.beloteE2];
+  cconst handleAddRound = () => {
+  // 1. Récupération des valeurs numériques depuis tes constantes
+  const contratE1Val = CONTRATS[gameState.contratE1 as keyof typeof CONTRATS] || 0;
+  const realiseE1Val = REALISES[gameState.realiseE1 as keyof typeof REALISES] || 0;
+  const beloteE1Val = BELOTE_ANNONCES[gameState.beloteE1 as keyof typeof BELOTE_ANNONCES] || 0;
+
+  const contratE2Val = CONTRATS[gameState.contratE2 as keyof typeof CONTRATS] || 0;
+  const realiseE2Val = REALISES[gameState.realiseE2 as keyof typeof REALISES] || 0;
+  const beloteE2Val = BELOTE_ANNONCES[gameState.beloteE2 as keyof typeof BELOTE_ANNONCES] || 0;
+
+  // 2. Identification des Labels (Capot / Générale)
+  const labelE1 = gameState.realiseE1; 
+  const labelE2 = gameState.realiseE2;
+
+  // 3. Génération de la Remarque Automatique pour le tableau
+  let finalRemarque = "N/A";
+  if (labelE1 === "Capot" && contratE1Val < 500) {
+    finalRemarque = "Capot non annoncé";
+  } else if (labelE1 === "Générale" && contratE1Val < 1000) {
+    finalRemarque = "Générale non annoncée";
+  } else if (labelE2 === "Capot" && contratE2Val < 500) {
+    finalRemarque = "Capot non annoncé";
+  } else if (labelE2 === "Générale" && contratE2Val < 1000) {
+    finalRemarque = "Générale non annoncée";
+  } else {
+    // Si pas de bonus, on prend la remarque manuelle sélectionnée (ex: Coinche)
+    finalRemarque = gameState.remarqueE1 !== "N/A" ? gameState.remarqueE1 : gameState.remarqueE2;
+  }
+
+  // 4. Calcul des points (ce qui est affiché dans les colonnes Score)
+  const [pointsE1, chuteE1] = calculerPoints(
+    contratE1Val, realiseE1Val, beloteE1Val, gameState.remarqueE1,
+    contratE2Val, realiseE2Val, beloteE2Val, gameState.remarqueE2,
+    labelE1, labelE2
+  );
+
+  const [pointsE2, chuteE2] = calculerPointsAdverse(
+    contratE1Val, realiseE1Val, beloteE1Val, gameState.remarqueE1,
+    contratE2Val, realiseE2Val, beloteE2Val, gameState.remarqueE2,
+    labelE1, labelE2
+  );
+
+  // 5. Calcul des Écarts et Théoriques (ce qui déclenche les alertes)
+  const ecartE1 = calculerEcart(contratE1Val, realiseE1Val, labelE1);
+  const ecartE2 = calculerEcart(contratE2Val, realiseE2Val, labelE2);
+  
+  const theoE1 = calculerPointsTheoriques(contratE1Val, realiseE1Val, beloteE1Val, labelE1);
+  const theoE2 = calculerPointsTheoriques(contratE2Val, realiseE2Val, beloteE2Val, labelE2);
+
+  // 6. Construction de l'objet final pour l'historique
+  const newRound = {
+    id: Date.now(),
+    equipe1: {
+      contrat: contratE1Val,
+      realise: realiseE1Val,
+      points: pointsE1,
+      chute: chuteE1,
+      ecart: ecartE1,
+      ecartTheo: theoE1
+    },
+    equipe2: {
+      contrat: contratE2Val,
+      realise: realiseE2Val,
+      points: pointsE2,
+      chute: chuteE2,
+      ecart: ecartE2,
+      ecartTheo: theoE2
+    },
+    remarques: finalRemarque
+  };
+
+  // 7. Mise à jour de l'état (Historique + Reset)
+  setHistory(prev => [...prev, newRound]);
+  resetGameState(); // Remet le formulaire à zéro pour la manche suivante
+};
 
   // --- VALIDATIONS ---
   if (gameState.remarqueE1 !== "N/A" && gameState.remarqueE2 !== "N/A" && gameState.remarqueE1 === gameState.remarqueE2) {
