@@ -139,24 +139,31 @@ export const useGameActions = () => {
   realise: number,
   chute: number
 ): AlertType => {
-  // 1. PRIORITÉ ABSOLUE : Capot non annoncé (Remarques)
-  // On vérifie cela AVANT tout calcul d'écart pour éviter l'inversion
+  // 1. PRIORITÉ ABSOLUE : Capot ou Générale non annoncé
   if (remarques === "Vous êtes nuls" || remarques === "Capot non annoncé") {
     return "Vous êtes nuls";
+  }
+  
+  if (remarques === "La Chatte" || remarques === "Générale non annoncée") {
+    return "La Chatte";
   }
 
   // 2. Si contrat chuté : AUCUNE ALERTE ÉPICIER
   if (chute === 1) return null;
 
-  // 3. Si Capot ou Générale RÉUSSI : AUCUNE ALERTE ÉPICIER
+  // 3. Si Capot ou Générale RÉUSSI (annoncé) : AUCUNE ALERTE ÉPICIER
   const isCapotOrGeneraleReussi = (contrat === 500 || contrat === 1000) && realise === 160;
   if (isCapotOrGeneraleReussi) return null;
   
-  // 4. SEULEMENT ENSUITE : Calcul de l'écart de la mène pour les épiceries
+  // 4. CALCUL DE L'ÉCART DE LA MÈNE
   const ecartMene = currentEcartTheo - previousEcartTheo;
-  if (ecartMene >= 50) return "Commerce de Gros"; 
-  if (ecartMene >= 40) return "Épicerie Fine"; 
-  if (ecartMene >= 30) return "Épicerie"; 
+
+  // MODIFICATION ICI : On ignore les écarts qui correspondent à un Capot (420) ou Générale (920)
+  // pour qu'ils ne soient pas transformés en "Commerce de Gros" par erreur.
+  // On ne traite que les écarts "standards" d'épicerie.
+  if (ecartMene >= 50 && ecartMene < 400) return "Commerce de Gros"; 
+  if (ecartMene >= 40 && ecartMene < 50) return "Épicerie Fine"; 
+  if (ecartMene >= 30 && ecartMene < 40) return "Épicerie"; 
   
   return null;
 };

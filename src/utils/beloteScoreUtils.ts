@@ -3,9 +3,9 @@ import { BELOTE_ANNONCES, BeloteAnnonce, Remarque } from "@/types/belote";
 /**
  * Calcul de l'écart :
  * - Si Capot/Générale ANNONCÉ et RÉUSSI : écart = 0
- * - Si Capot NON ANNONCÉ (tous les plis) : écart = 500 - contrat
- * - Si Générale NON ANNONCÉE : écart = 1000 - contrat
- * - Si 160 points (mais l'adversaire a marqué via Belote ou autre) : calcul standard abs(contrat - 160)
+ * - Si Capot NON ANNONCÉ (Vrai Capot) : écart = 500 - contrat (ex: 420)
+ * - Si Générale NON ANNONCÉE : écart = 1000 - contrat (ex: 920)
+ * - Si 160 points simples : calcul standard abs(160 - contrat) (ex: 80)
  */
 export const calculerEcart = (
   contrat: number, 
@@ -14,27 +14,21 @@ export const calculerEcart = (
 ): number => {
   if (contrat <= 0 || realise === null) return 0;
 
-  // 1. Capot (500) ou Générale (1000) ANNONCÉ et RÉUSSI -> Écart 0
-  if ((contrat === 500 || contrat === 1000) && realise === 160) {
-    return 0;
-  }
+  // 1. Si le contrat annoncé (Capot/Générale) est réussi, l'écart est 0
+  if (contrat === 500 && realise === 160 && realiseLabel === "Capot") return 0;
+  if (contrat === 1000 && realise === 160 && realiseLabel === "Générale") return 0;
 
-  // 2. Cas où l'équipe fait 160 (Tous les points)
+  // 2. Gestion des bonus non annoncés (Vrai Capot ou Générale)
   if (realise === 160) {
-    // Si c'est un VRAI Capot (tous les plis faits, pas de points adverses)
-    if (realiseLabel === "Capot" && contrat < 500) {
-      return 500 - contrat;
+    if (realiseLabel === "Capot") {
+      return Math.abs(500 - contrat);
     }
-    // Si c'est une VRAIE Générale
-    if (realiseLabel === "Générale" && contrat < 1000) {
-      return 1000 - contrat;
+    if (realiseLabel === "Générale") {
+      return Math.abs(1000 - contrat);
     }
-    // Si c'est 160 points simples (l'autre équipe a marqué, ex: Belote-Rebelote)
-    // On reste sur le calcul standard pour éviter les écarts de 420+ injustifiés
-    return Math.abs(contrat - realise);
   }
 
-  // 3. Calcul standard pour les autres cas
+  // 3. Calcul standard (pour les points simples ou chutes)
   return Math.abs(contrat - realise);
 };
 
@@ -178,11 +172,12 @@ export const calculerPointsTheoriques = (
 ): number => {
   if (contrat === 0) return 0;
   
-  // Pour le calcul théorique (cumul), on utilise la valeur "boostée" en cas de capot non annoncé
+  // Pour le cumul, on utilise les paliers 500 et 1000 si le label est présent
   if (realise === 160) {
     if (realiseLabel === "Capot") return 500 + belote;
     if (realiseLabel === "Générale") return 1000 + belote;
   }
 
+  // Cas standard ou Capot/Générale annoncé et réussi
   return (contrat >= 500 && realise === 160) ? contrat + belote : (realise !== null ? realise + belote : belote);
 };
