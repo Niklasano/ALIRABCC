@@ -240,129 +240,13 @@ useEffect(() => {
 };
   
  // Fonction pour ajouter une manche
-  const handleAddRound = () => {
-  // 1. Récupération des valeurs numériques
-  const contratE1Val = CONTRATS[gameState.contratE1 as keyof typeof CONTRATS] || 0;
-  const realiseE1Val = REALISES[gameState.realiseE1 as keyof typeof REALISES] || 0;
-  const beloteE1Val = BELOTE_ANNONCES[gameState.beloteE1 as keyof typeof BELOTE_ANNONCES] || 0;
-
-  const contratE2Val = CONTRATS[gameState.contratE2 as keyof typeof CONTRATS] || 0;
-  const realiseE2Val = REALISES[gameState.realiseE2 as keyof typeof REALISES] || 0;
-  const beloteE2Val = BELOTE_ANNONCES[gameState.beloteE2 as keyof typeof BELOTE_ANNONCES] || 0;
-
-  // 2. Détermination de la remarque automatique (Capot/Générale non annoncé)
-  let finalRemarque = "N/A";
-  if (gameState.realiseE1 === "Capot" && contratE1Val < 500) finalRemarque = "Capot non annoncé";
-  else if (gameState.realiseE1 === "Générale" && contratE1Val < 1000) finalRemarque = "Générale non annoncée";
-  else if (gameState.realiseE2 === "Capot" && contratE2Val < 500) finalRemarque = "Capot non annoncé";
-  else if (gameState.realiseE2 === "Générale" && contratE2Val < 1000) finalRemarque = "Générale non annoncée";
-  else {
-    const remarqueManuelle = gameState.remarqueE1 !== "N/A" ? gameState.remarqueE1 : gameState.remarqueE2;
-    finalRemarque = remarqueManuelle !== "N/A" ? remarqueManuelle : "N/A";
-  }
-
-  // 3. Calcul des scores et écarts
-  const [pointsE1, chuteE1] = calculerPoints(
-    contratE1Val, realiseE1Val, beloteE1Val, gameState.remarqueE1,
-    contratE2Val, realiseE2Val, beloteE2Val, gameState.remarqueE2,
-    gameState.realiseE1, gameState.realiseE2
-  );
-  const [pointsE2, chuteE2] = calculerPointsAdverse(
-    contratE1Val, realiseE1Val, beloteE1Val, gameState.remarqueE1,
-    contratE2Val, realiseE2Val, beloteE2Val, gameState.remarqueE2,
-    gameState.realiseE1, gameState.realiseE2
-  );
-
-  const ecartE1 = calculerEcart(contratE1Val, realiseE1Val, gameState.realiseE1);
-  const ecartE2 = calculerEcart(contratE2Val, realiseE2Val, gameState.realiseE2);
-
-  const prevEcartTheoE1 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique"] : 0;
-  const prevEcartTheoE2 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique_E2"] : 0;
-
-  // 4. Création de la ligne avec l'alerte intégrée
-  const newRound = createNewBeloteRow(
-    gameState.data,
-    gameState.data.length + 1,
-    contratE1Val, chuteE1, realiseE1Val, ecartE1, prevEcartTheoE1 + ecartE1, gameState.beloteE1, finalRemarque, pointsE1,
-    contratE2Val, chuteE2, realiseE2Val, ecartE2, prevEcartTheoE2 + ecartE2, gameState.beloteE2, finalRemarque, pointsE2,
-    calculerPointsTheoriques(contratE1Val, realiseE1Val, beloteE1Val, gameState.realiseE1),
-    calculerPointsTheoriques(contratE2Val, realiseE2Val, beloteE2Val, gameState.realiseE2),
-    gameState.cardColorE1, gameState.cardColorE2
-  );
-
-  const newData = [...gameState.data, newRound];
-  gameState.setData(newData);
-  
-  // 5. Mise à jour des tables d'affichage (C'est ici qu'on ajoute l'appel à getAlertForRow)
-  updateTablesWithAlerts(newData);
-
-  gameState.resetInputs();
-  if (gameState.currentDealer !== null) gameState.setCurrentDealer(getNextDealer(gameState.currentDealer));
-};
-
-const formatDisplayRow = (row: any, teamNum: number): any => {
-  const isTeam1 = teamNum === 1;
-  
-  // On récupère les valeurs selon l'équipe
-  const contrat = isTeam1 ? row.Contrat : row.Contrat_E2;
-  const realise = isTeam1 ? row.Réalisé : row.Réalisé_E2;
-  const chute = isTeam1 ? row.Chute : row.Chute_E2;
-  const ecart = isTeam1 ? row.Ecart : row.Ecart_E2;
-  const points = isTeam1 ? row.Points : row.Points_E2;
-  const total = isTeam1 ? row.Total : row.Total_E2;
-  const belote = isTeam1 ? row["Belote Equipe 1"] : row["Belote Equipe 2"];
-  const suitColor = isTeam1 ? row.CardColor : row.CardColor_E2;
-  const ecartTheo = isTeam1 ? row["Ecarts Théorique"] : row["Ecarts Théorique_E2"];
-
-  // Détermination du texte du contrat (Capot/Générale)
-  let contratDisplay = String(contrat);
-  if (contrat === 500) contratDisplay = "Capot";
-  if (contrat === 1000) contratDisplay = "Générale";
-
-  // Détermination du texte du réalisé
-  let realiseDisplay = String(realise);
-  if (row.Remarques === "Capot non annoncé" && isTeam1 && realise === 160) realiseDisplay = "Capot";
-  if (row.Remarques === "Générale non annoncée" && isTeam1 && realise === 160) realiseDisplay = "Générale";
-
-  return {
-    Mène: row.Mène,
-    Contrat: contratDisplay,
-    Chute: chute === 1 ? "Oui" : "Non",
-    Réalisé: realiseDisplay,
-    Ecart: ecart,
-    "Ecarts Théo": ecartTheo,
-    Belote: belote,
-    Remarques: row.Remarques,
-    Points: String(points),
-    Alerte: row.Alerte, // Cette valeur vient de getAlertForRow
-    Total: { text: String(total), backgroundColor: "transparent" },
-    SuitColor: suitColor
-  };
-};
-
-const updateTablesWithAlerts = (data: any[]) => {
-  const t1Rows = data.map(row => ({
-    ...row,
-    Alerte: getAlertForRow(row.Ecart, row.Remarques, row.Chute)
-  }));
-  
-  const t2Rows = data.map(row => ({
-    ...row,
-    Alerte: getAlertForRow(row.Ecart_E2, row.Remarques_E2 || row.Remarques, row.Chute_E2)
-  }));
-
-  gameActions.updateDisplayTables(
-    data,
-    gameState.setTeam1Rows, gameState.setTeam2Rows,
-    gameState.setTeam1Score, gameState.setTeam2Score,
-    gameState.setTeam1Winner, gameState.setTeam2Winner,
-    gameState.victoryPoints
-  );
-  
-  // Force la mise à jour des lignes avec les alertes
-  gameState.setTeam1Rows(t1Rows.map(r => formatDisplayRow(r, 1)));
-  gameState.setTeam2Rows(t2Rows.map(r => formatDisplayRow(r, 2)));
-};
+const handleAddRound = () => {
+  const contratE1Val = CONTRATS[gameState.contratE1];
+  const realiseE1Val = REALISES[gameState.realiseE1];
+  const beloteE1Val = BELOTE_ANNONCES[gameState.beloteE1];
+  const contratE2Val = CONTRATS[gameState.contratE2];
+  const realiseE2Val = REALISES[gameState.realiseE2];
+  const beloteE2Val = BELOTE_ANNONCES[gameState.beloteE2];
 
   // --- VALIDATIONS ---
   if (gameState.remarqueE1 !== "N/A" && gameState.remarqueE2 !== "N/A" && gameState.remarqueE1 === gameState.remarqueE2) {
@@ -838,7 +722,7 @@ if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
     }
     
     setShowWinnerAlert(false);
-}
+  };
 
   return (
     <div className="container mx-auto px-4 pb-12 max-w-7xl">
