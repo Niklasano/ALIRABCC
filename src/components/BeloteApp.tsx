@@ -280,8 +280,17 @@ const handleAddRound = () => {
   }
 
   // --- CALCUL DES ÉCARTS ET POINTS ---
-  let ecartE1 = calculerEcart(contratE1Val, realiseE1Final);
-  let ecartE2 = calculerEcart(contratE2Val, realiseE2Final);
+let ecartE1 = calculerEcart(contratE1Val, realiseE1Final);
+let ecartE2 = calculerEcart(contratE2Val, realiseE2Final);
+
+// Nouvelle règle : Écart à 0 si Capot ou Générale réussi
+if ((contratE1Val === 500 || contratE1Val === 1000) && realiseE1Final === 160) {
+  ecartE1 = 0;
+}
+
+if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
+  ecartE2 = 0;
+}
   
   const [pointsE1, chuteE1] = calculerPoints(
     contratE1Val, realiseE1Final, beloteE1Val, gameState.remarqueE1,
