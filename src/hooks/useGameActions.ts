@@ -142,25 +142,25 @@ const getAlertForRow = (
   remarques: string,
   contrat: number,
   realise: number,
-  chute: number
+  chute: number // Ajout du paramètre chute
 ): AlertType => {
-  // 1. Si contrat chuté : AUCUNE ALERTE
+  // 1. Si contrat chuté : AUCUNE ALERTE [cite: 32, 38]
   if (chute === 1) return null;
 
-  // 2. Si Capot ou Générale RÉUSSI : AUCUNE ALERTE
+  // 2. Si Capot ou Générale RÉUSSI : AUCUNE ALERTE [cite: 33]
   const isCapotOrGeneraleReussi = (contrat === 500 || contrat === 1000) && realise === 160;
   if (isCapotOrGeneraleReussi) return null;
 
-  // 3. Gestion "Vous êtes nuls"
+  // 3. Gestion "Vous êtes nuls" (Capot non annoncé) [cite: 31]
   if (remarques === "Vous êtes nuls" || remarques === "Capot non annoncé") {
     return "Vous êtes nuls";
   }
   
-  // 4. Calcul de l'écart de la mène (Supprime les ici)
+  // 4. Calcul de l'écart de la mène pour les épiceries
   const ecartMene = currentEcartTheo - previousEcartTheo;
-  if (ecartMene >= 50) return "Commerce de Gros"; 
-  if (ecartMene >= 40) return "Épicerie Fine"; 
-  if (ecartMene >= 30) return "Épicerie"; 
+  if (ecartMene >= 50) return "Commerce de Gros"; [cite: 35]
+  if (ecartMene >= 40) return "Épicerie Fine"; [cite: 36]
+  if (ecartMene >= 30) return "Épicerie"; [cite: 37]
   
   return null;
 };
