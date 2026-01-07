@@ -40,11 +40,10 @@ export const useGameActions = () => {
   const newEcartE2 = ecartTheoE2 - prevEcartTheoE2;
   
   // CORRECTION : Ne pas déclencher l'alerte si c'est un capot (500) ou une générale (1000) réussis
-  // Vérification Équipe 1
-  // Ne déclenche PAS d'alerte si capot (500) ou générale (1000) réussi
-  const isCapotOrGeneraleE1 = (contratE1 === 500 || contratE1 === 1000) && realiseE1 >= contratE1;
+  // Pour un capot/générale réussi : contrat = 500/1000 ET réalisé = 160 (tous les plis)
+  const isCapotOrGeneraleE1 = (contratE1 === 500 || contratE1 === 1000) && realiseE1 === 160;
   
-  if (newEcartE1 >= 30 && contratE1 !== 0 && realiseE1 >= contratE1 && !isCapotOrGeneraleE1) {
+  if (newEcartE1 >= 30 && contratE1 !== 0 && !isCapotOrGeneraleE1) {
     setEpicierAlert({
       show: true,
       teamName: team1Name,
@@ -54,10 +53,9 @@ export const useGameActions = () => {
   }
   
   // Vérification Équipe 2
-  // Ne déclenche PAS d'alerte si capot (500) ou générale (1000) réussi
-  const isCapotOrGeneraleE2 = (contratE2 === 500 || contratE2 === 1000) && realiseE2 >= contratE2;
+  const isCapotOrGeneraleE2 = (contratE2 === 500 || contratE2 === 1000) && realiseE2 === 160;
   
-  if (newEcartE2 >= 30 && contratE2 !== 0 && realiseE2 >= contratE2 && !isCapotOrGeneraleE2) {
+  if (newEcartE2 >= 30 && contratE2 !== 0 && !isCapotOrGeneraleE2) {
     setEpicierAlert({
       show: true,
       teamName: team2Name,
@@ -150,7 +148,8 @@ export const useGameActions = () => {
     }
     
     // CORRECTION : Ne pas afficher d'alerte épicerie si capot (500) ou générale (1000) réussi
-    const isCapotOrGeneraleReussi = (contrat === 500 || contrat === 1000) && realise >= contrat;
+    // Pour un capot/générale réussi : contrat = 500/1000 ET réalisé = 160 (tous les plis)
+    const isCapotOrGeneraleReussi = (contrat === 500 || contrat === 1000) && realise === 160;
     if (isCapotOrGeneraleReussi) {
       return null;
     }
