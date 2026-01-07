@@ -132,29 +132,34 @@ export const useGameActions = () => {
 
   // Fonction pour déterminer l'alerte d'une équipe basée sur l'écart théorique de la mène
   const getAlertForRow = (
-    currentEcartTheo: number, 
-    previousEcartTheo: number, 
-    remarques: string
-  ): AlertType => {
-    // Vérifier d'abord "Vous êtes nuls" dans les remarques
-    if (remarques === "Vous êtes nuls" || remarques === "Capot non annoncé") {
-      return "Vous êtes nuls";
-    }
-    
-    // Calculer l'écart de cette mène uniquement (pas le cumulé)
-    const ecartMene = currentEcartTheo - previousEcartTheo;
-    
-    // Alertes basées sur l'écart théorique de la mène (seulement pour l'équipe qui a pris)
-    if (ecartMene >= 50) {
-      return "Commerce de Gros";
-    } else if (ecartMene >= 40) {
-      return "Épicerie Fine";
-    } else if (ecartMene >= 30) {
-      return "Épicerie";
-    }
-    
-    return null;
-  };
+  currentEcartTheo: number, 
+  previousEcartTheo: number, 
+  remarques: string,
+  contrat: number,
+  realise: number,
+  chute: number
+): AlertType => {
+  // 1. PRIORITÉ ABSOLUE : Capot non annoncé (Remarques)
+  // On vérifie cela AVANT tout calcul d'écart pour éviter l'inversion
+  if (remarques === "Vous êtes nuls" || remarques === "Capot non annoncé") {
+    return "Vous êtes nuls";
+  }
+
+  // 2. Si contrat chuté : AUCUNE ALERTE ÉPICIER
+  if (chute === 1) return null;
+
+  // 3. Si Capot ou Générale RÉUSSI : AUCUNE ALERTE ÉPICIER
+  const isCapotOrGeneraleReussi = (contrat === 500 || contrat === 1000) && realise === 160;
+  if (isCapotOrGeneraleReussi) return null;
+  
+  // 4. SEULEMENT ENSUITE : Calcul de l'écart de la mène pour les épiceries
+  const ecartMene = currentEcartTheo - previousEcartTheo;
+  if (ecartMene >= 50) return "Commerce de Gros"; 
+  if (ecartMene >= 40) return "Épicerie Fine"; 
+  if (ecartMene >= 30) return "Épicerie"; 
+  
+  return null;
+};
 
   // Fonction pour mettre à jour les tableaux d'affichage
   const updateDisplayTables = (
