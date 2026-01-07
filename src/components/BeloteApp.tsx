@@ -240,7 +240,7 @@ useEffect(() => {
 };
   
  // Fonction pour ajouter une manche
-  const handleAddRound = () => {
+  cconst handleAddRound = () => {
   // 1. Récupération des valeurs numériques depuis tes constantes
   const contratE1Val = CONTRATS[gameState.contratE1 as keyof typeof CONTRATS] || 0;
   const realiseE1Val = REALISES[gameState.realiseE1 as keyof typeof REALISES] || 0;
