@@ -838,7 +838,7 @@ if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
     }
     
     setShowWinnerAlert(false);
-
+  };
 
   return (
     <div className="container mx-auto px-4 pb-12 max-w-7xl">
