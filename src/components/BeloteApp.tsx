@@ -901,10 +901,12 @@ const handleAddRound = () => {
       
       {gameActions.epicierAlert && gameActions.epicierAlert.show && (
         <EpicierAlert 
-          teamName={gameActions.epicierAlert.teamName} 
-          ecartTheo={gameActions.epicierAlert.ecartTheo}
-          onClose={() => gameActions.setEpicierAlert(null)} 
-        />
+		  teamName={epicierAlert.teamName}
+		  ecartTheo={epicierAlert.ecartTheo}
+		  onClose={() => setEpicierAlert(null)}
+		  isChute={chuteEnCours === 1} 
+		  isSpecial={contratEnCours >= 500} // 500 = Capot, 1000 = Générale
+		/>
       )}
       
       {gameActions.vousEtesNulsAlert && gameActions.vousEtesNulsAlert.show && (
