@@ -23,51 +23,39 @@ export const useGameActions = () => {
     show: boolean;
   } | null>(null);
 
-  // Fonction pour vérifier si un écart théorique d'au moins 30 points est atteint
+  // 1. Vérification Epicier (Flash écran)
   const checkEpicierCondition = (
-  ecartTheoE1: number, 
-  ecartTheoE2: number, 
-  prevEcartTheoE1: number, 
-  prevEcartTheoE2: number,
-  contratE1: number,
-  realiseE1: number,
-  contratE2: number,
-  realiseE2: number,
-  team1Name: string,
-  team2Name: string
-) => {
-  const newEcartE1 = ecartTheoE1 - prevEcartTheoE1;
-  const newEcartE2 = ecartTheoE2 - prevEcartTheoE2;
-  
-  // CORRECTION : Ne pas déclencher l'alerte si c'est un capot (500) ou une générale (1000) réussis
-  // Pour un capot/générale réussi : contrat = 500/1000 ET réalisé = 160 (tous les plis)
-  const isCapotOrGeneraleE1 = (contratE1 === 500 || contratE1 === 1000) && realiseE1 === 160;
-  
-  if (newEcartE1 >= 30 && contratE1 !== 0 && !isCapotOrGeneraleE1) {
-    setEpicierAlert({
-      show: true,
-      teamName: team1Name,
-      ecartTheo: newEcartE1
-    });
-    return true; // ALERTE LANCÉE -> BLOQUE LES AUTRES
-  }
-  
-  // Vérification Équipe 2
-  const isCapotOrGeneraleE2 = (contratE2 === 500 || contratE2 === 1000) && realiseE2 === 160;
-  
-  if (newEcartE2 >= 30 && contratE2 !== 0 && !isCapotOrGeneraleE2) {
-    setEpicierAlert({
-      show: true,
-      teamName: team2Name,
-      ecartTheo: newEcartE2
-    });
-    return true; // ALERTE LANCÉE -> BLOQUE LES AUTRES
-  }
+    ecartTheoE1: number, 
+    ecartTheoE2: number, 
+    prevEcartTheoE1: number, 
+    prevEcartTheoE2: number,
+    contratE1: number,
+    realiseE1: number,
+    contratE2: number,
+    realiseE2: number,
+    chuteE1: number,
+    chuteE2: number,
+    team1Name: string,
+    team2Name: string
+  ) => {
+    const newEcartE1 = ecartTheoE1 - prevEcartTheoE1;
+    const newEcartE2 = ecartTheoE2 - prevEcartTheoE2;
+    
+    const isSpecialE1 = (contratE1 === 500 || contratE1 === 1000) && realiseE1 === 160;
+    if (newEcartE1 >= 30 && contratE1 !== 0 && chuteE1 === 0 && !isSpecialE1) {
+      setEpicierAlert({ show: true, teamName: team1Name, ecartTheo: newEcartE1 });
+      return true;
+    }
+    
+    const isSpecialE2 = (contratE2 === 500 || contratE2 === 1000) && realiseE2 === 160;
+    if (newEcartE2 >= 30 && contratE2 !== 0 && chuteE2 === 0 && !isSpecialE2) {
+      setEpicierAlert({ show: true, teamName: team2Name, ecartTheo: newEcartE2 });
+      return true;
+    }
+    return false;
+  };
 
-  return false; // AUCUNE ALERTE ÉPICIER
-};
-
-  // Fonction pour vérifier si une équipe fait un capot sans l'avoir annoncé
+  // 2. Vérification Capot non annoncé
   const checkVousEtesNulsCondition = (
     realiseE1: number,
     contratE1: number,
@@ -78,24 +66,17 @@ export const useGameActions = () => {
     realiseE1Label?: string,
     realiseE2Label?: string
   ) => {
-    // Équipe 1 fait un capot sans l'avoir annoncé (mais pas si "0 mais pas capot" est sélectionné)
     if (realiseE1 === 160 && contratE1 > 0 && contratE1 < 500 && realiseE1Label !== "0 mais pas capot") {
-      setVousEtesNulsAlert({
-        show: true
-      });
+      setVousEtesNulsAlert({ show: true });
       return;
     }
-    
-    // Équipe 2 fait un capot sans l'avoir annoncé (mais pas si "0 mais pas capot" est sélectionné)
     if (realiseE2 === 160 && contratE2 > 0 && contratE2 < 500 && realiseE2Label !== "0 mais pas capot") {
-      setVousEtesNulsAlert({
-        show: true
-      });
+      setVousEtesNulsAlert({ show: true });
       return;
     }
   };
 
-  // Fonction pour vérifier si une équipe fait une Générale réussie
+  // 3. Vérification Générale
   const checkLaChatteCondition = (
     contratE1: number,
     realiseE1: number,
@@ -104,68 +85,44 @@ export const useGameActions = () => {
     team1Name: string,
     team2Name: string
   ) => {
-    // Vérifier si une des équipes contient "Pépite" ou "Petit Ageorges"
-    const team1Players = team1Name.toLowerCase();
-    const team2Players = team2Name.toLowerCase();
     const forbiddenNames = ['pépite', 'petit ageorges'];
-    
-    const hasForbiddenName = forbiddenNames.some(name => 
-      team1Players.includes(name) || team2Players.includes(name)
+    const hasForbidden = forbiddenNames.some(name => 
+      team1Name.toLowerCase().includes(name) || team2Name.toLowerCase().includes(name)
     );
+    if (hasForbidden) return;
     
-    if (hasForbiddenName) {
-      return;
-    }
-    
-    // Équipe 1 annonce et réussit une Générale (1000)
-    if (contratE1 === 1000 && realiseE1 === 160) {
-      setLaChatteAlert({
-        show: true
-      });
-      return;
-    }
-    
-    // Équipe 2 annonce et réussit une Générale (1000)
-    if (contratE2 === 1000 && realiseE2 === 160) {
-      setLaChatteAlert({
-        show: true
-      });
-      return;
+    if ((contratE1 === 1000 && realiseE1 === 160) || (contratE2 === 1000 && realiseE2 === 160)) {
+      setLaChatteAlert({ show: true });
     }
   };
 
-  // Fonction pour déterminer l'alerte d'une équipe basée sur l'écart théorique de la mène
-// Remplacer la fonction getAlertForRow dans useGameActions.txt
-const getAlertForRow = (
-  currentEcartTheo: number, 
-  previousEcartTheo: number, 
-  remarques: string,
-  contrat: number,
-  realise: number,
-  chute: number
-): AlertType => {
-  // 1. Si contrat chuté : AUCUNE ALERTE
-  if (chute === 1) return null;
+  // 4. Alerte de ligne (Tableau) - CORRIGÉ SANS CITE
+  const getAlertForRow = (
+    currentEcartTheo: number, 
+    previousEcartTheo: number, 
+    remarques: string,
+    contrat: number,
+    realise: number,
+    chute: number
+  ): AlertType => {
+    if (chute === 1) return null;
 
-  // 2. Si Capot ou Générale RÉUSSI : AUCUNE ALERTE
-  const isCapotOrGeneraleReussi = (contrat === 500 || contrat === 1000) && realise === 160;
-  if (isCapotOrGeneraleReussi) return null;
+    const isSpecial = (contrat === 500 || contrat === 1000) && realise === 160;
+    if (isSpecial) return null;
 
-  // 3. Gestion "Vous êtes nuls"
-  if (remarques === "Vous êtes nuls" || remarques === "Capot non annoncé") {
-    return "Vous êtes nuls";
-  }
-  
-  // 4. Calcul de l'écart de la mène (Supprime les ici)
-  const ecartMene = currentEcartTheo - previousEcartTheo;
-  if (ecartMene >= 50) return "Commerce de Gros"; 
-  if (ecartMene >= 40) return "Épicerie Fine"; 
-  if (ecartMene >= 30) return "Épicerie"; 
-  
-  return null;
-};
+    if (remarques === "Vous êtes nuls" || remarques === "Capot non annoncé") {
+      return "Vous êtes nuls";
+    }
+    
+    const ecartMene = currentEcartTheo - previousEcartTheo;
+    if (ecartMene >= 50) return "Commerce de Gros";
+    if (ecartMene >= 40) return "Épicerie Fine";
+    if (ecartMene >= 30) return "Épicerie";
+    
+    return null;
+  };
 
-  // Fonction pour mettre à jour les tableaux d'affichage
+  // 5. Mise à jour des tableaux - PARAMÈTRE CHUTE AJOUTÉ AUX APPELS
   const updateDisplayTables = (
     newData: BeloteRow[],
     setTeam1Rows: (rows: DisplayRow[]) => void,
@@ -178,7 +135,6 @@ const getAlertForRow = (
   ) => {
     const team1Rows: DisplayRow[] = [];
     const team2Rows: DisplayRow[] = [];
-    
     let totalE1 = 0;
     let totalE2 = 0;
     
@@ -186,88 +142,66 @@ const getAlertForRow = (
       totalE1 += row.Points;
       totalE2 += row.Points_E2;
       
-      // Récupérer les écarts précédents pour calculer l'écart de la mène
-      const prevEcartTheoE1 = i > 0 ? newData[i - 1]["Ecarts Théorique"] : 0;
-      const prevEcartTheoE2 = i > 0 ? newData[i - 1]["Ecarts Théorique_E2"] : 0;
+      const prevE1 = i > 0 ? newData[i - 1]["Ecarts Théorique"] : 0;
+      const prevE2 = i > 0 ? newData[i - 1]["Ecarts Théorique_E2"] : 0;
       
-      // Déterminer quelle équipe a annoncé le contrat (basé sur qui a un contrat > 0)
-      const team1HasContract = row.Contrat > 0;
-      const team2HasContract = row.Contrat_E2 > 0;
-      
-      // Alerte pour Team1 (seulement si c'est eux qui ont annoncé)
-      const alertTeam1: AlertType = team1HasContract 
-        ? getAlertForRow(row["Ecarts Théorique"], prevEcartTheoE1, row.Remarques, row.Contrat, row.Réalisé)
+      // FIX : On passe bien row.Chute ici pour éviter le freeze
+      const alertTeam1: AlertType = row.Contrat > 0 
+        ? getAlertForRow(row["Ecarts Théorique"], prevE1, row.Remarques, row.Contrat, row.Réalisé, row.Chute)
         : null;
       
-      // Alerte pour Team2 (seulement si c'est eux qui ont annoncé)
-      const alertTeam2: AlertType = team2HasContract 
-        ? getAlertForRow(row["Ecarts Théorique_E2"], prevEcartTheoE2, row.Remarques_E2, row.Contrat_E2, row.Réalisé_E2)
+      const alertTeam2: AlertType = row.Contrat_E2 > 0 
+        ? getAlertForRow(row["Ecarts Théorique_E2"], prevE2, row.Remarques_E2, row.Contrat_E2, row.Réalisé_E2, row.Chute_E2)
         : null;
       
-      // CORRECTION : Ne pas afficher l'écart si capot ou générale réussi
-      const isCapotOrGeneraleE1 = (row.Contrat === 500 || row.Contrat === 1000) && row.Réalisé >= row.Contrat;
-      const isCapotOrGeneraleE2 = (row.Contrat_E2 === 500 || row.Contrat_E2 === 1000) && row.Réalisé_E2 >= row.Contrat_E2;
+      const isSpecialE1 = (row.Contrat === 500 || row.Contrat === 1000) && row.Chute === 0;
+      const isSpecialE2 = (row.Contrat_E2 === 500 || row.Contrat_E2 === 1000) && row.Chute_E2 === 0;
       
-      const team1Row: DisplayRow = {
+      team1Rows.push({
         Mène: String(row.Mène),
         Contrat: formatTableCell(row.Contrat, 1, row.Contrat),
         SuitColor: row.CardColor,
         Chute: formatTableCell(row.Chute, 2, row.Contrat),
         Réalisé: formatTableCell(row.Réalisé, 3, row.Contrat),
-        Ecart: isCapotOrGeneraleE1 ? { text: '', backgroundColor: '#FFFFFF' } : formatTableCell(row.Ecart, 4, row.Contrat),
+        Ecart: isSpecialE1 ? { text: '', backgroundColor: '#FFFFFF' } : formatTableCell(row.Ecart, 4, row.Contrat),
         "Ecarts Théo": formatTableCell(row["Ecarts Théorique"], 5, row.Contrat),
         Belote: formatTableCell(row["Belote Equipe 1"], 6, row.Contrat),
         Remarques: formatTableCell(row.Remarques === "Vous êtes nuls" ? "Capot non annoncé" : row.Remarques, 7, row.Contrat),
         Points: formatTableCell(row.Points, 8, row.Contrat),
         Alerte: alertTeam1,
-        Total: {
-          text: String(totalE1),
-          backgroundColor: totalE1 >= totalE2 ? '#90ee90' : '#ff6347'
-        }
-      };
+        Total: { text: String(totalE1), backgroundColor: totalE1 >= totalE2 ? '#90ee90' : '#ff6347' }
+      });
       
-      const team2Row: DisplayRow = {
+      team2Rows.push({
         Mène: String(row.Mène),
         Contrat: formatTableCell(row.Contrat_E2, 1, row.Contrat_E2),
         SuitColor: row.CardColor_E2,
         Chute: formatTableCell(row.Chute_E2, 2, row.Contrat_E2),
         Réalisé: formatTableCell(row.Réalisé_E2, 3, row.Contrat_E2),
-        Ecart: isCapotOrGeneraleE2 ? { text: '', backgroundColor: '#FFFFFF' } : formatTableCell(row.Ecart_E2, 4, row.Contrat_E2),
+        Ecart: isSpecialE2 ? { text: '', backgroundColor: '#FFFFFF' } : formatTableCell(row.Ecart_E2, 4, row.Contrat_E2),
         "Ecarts Théo": formatTableCell(row["Ecarts Théorique_E2"], 5, row.Contrat_E2),
         Belote: formatTableCell(row["Belote Equipe 2"], 6, row.Contrat_E2),
         Remarques: formatTableCell(row.Remarques_E2 === "Vous êtes nuls" ? "Capot non annoncé" : row.Remarques_E2, 7, row.Contrat_E2),
         Points: formatTableCell(row.Points_E2, 8, row.Contrat_E2),
         Alerte: alertTeam2,
-        Total: {
-          text: String(totalE2),
-          backgroundColor: totalE2 > totalE1 ? '#90ee90' : '#ff6347'
-        }
-      };
-      
-      team1Rows.push(team1Row);
-      team2Rows.push(team2Row);
+        Total: { text: String(totalE2), backgroundColor: totalE2 > totalE1 ? '#90ee90' : '#ff6347' }
+      });
     });
     
     setTeam1Rows(team1Rows);
     setTeam2Rows(team2Rows);
     setTeam1Score(totalE1);
     setTeam2Score(totalE2);
-    
-    const victoryThreshold = parseInt(victoryPoints);
-    setTeam1Winner(totalE1 >= victoryThreshold);
-    setTeam2Winner(totalE2 >= victoryThreshold);
+    setTeam1Winner(totalE1 >= parseInt(victoryPoints));
+    setTeam2Winner(totalE2 >= parseInt(victoryPoints));
   };
 
   return {
-    epicierAlert,
-    setEpicierAlert,
-    vousEtesNulsAlert,
-    setVousEtesNulsAlert,
-    laChatteAlert,
-    setLaChatteAlert,
-    checkEpicierCondition,
-    checkVousEtesNulsCondition,
-    checkLaChatteCondition,
-    updateDisplayTables,
+    epicierAlert, setEpicierAlert,
+    vousEtesNulsAlert, setVousEtesNulsAlert,
+    laChatteAlert, setLaChatteAlert,
+    checkEpicierCondition, checkVousEtesNulsCondition,
+    checkLaChatteCondition, updateDisplayTables,
+    getNextDealer, getPreviousDealer, createNewBeloteRow
   };
 };
