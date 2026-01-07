@@ -355,11 +355,11 @@ const handleAddRound = () => {
     // --- GESTION DES ALERTES FLASH (AVEC PRIORITÉ) ---
   // On vérifie d'abord l'Epicier (Commerce de Gros, etc.)
   const alerteAffichee = gameActions.checkEpicierCondition(
-  ecartTheoE1, ecartTheoE2, prevEcartTheoE1, prevEcartTheoE2,
-  contratE1Val, realiseE1Final,
-  contratE2Val, realiseE2Final,
-  gameState.team1Name, gameState.team2Name
-);
+    ecartTheoE1, ecartTheoE2, prevEcartTheoE1, prevEcartTheoE2,
+    gameState.contratE1, gameState.realiseE1,
+    gameState.contratE2, gameState.realiseE2,
+    gameState.team1Name, gameState.team2Name
+  );
 
   // Si l'épicier n'a pas affiché d'alerte, on vérifie "Vous êtes nuls"
   if (!alerteAffichee) {

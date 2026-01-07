@@ -29,10 +29,10 @@ export const useGameActions = () => {
   ecartTheoE2: number, 
   prevEcartTheoE1: number, 
   prevEcartTheoE2: number,
-  contratE1: number,
-  realiseE1: number,
-  contratE2: number,
-  realiseE2: number,
+  contratE1: string,
+  realiseE1: string,
+  contratE2: string,
+  realiseE2: string,
   team1Name: string,
   team2Name: string
 ) => {
@@ -40,11 +40,16 @@ export const useGameActions = () => {
   const newEcartE2 = ecartTheoE2 - prevEcartTheoE2;
   
   // CORRECTION : Ne pas déclencher l'alerte si c'est un capot (500) ou une générale (1000) réussis
+  const contratE1Num = parseInt(contratE1);
+  const realiseE1Num = parseInt(realiseE1);
+  const contratE2Num = parseInt(contratE2);
+  const realiseE2Num = parseInt(realiseE2);
+  
   // Vérification Équipe 1
   // Ne déclenche PAS d'alerte si capot (500) ou générale (1000) réussi
-  const isCapotOrGeneraleE1 = (contratE1 === 500 || contratE1 === 1000) && realiseE1 >= contratE1;
+  const isCapotOrGeneraleE1 = (contratE1Num === 500 || contratE1Num === 1000) && realiseE1Num >= contratE1Num;
   
-  if (newEcartE1 >= 30 && contratE1 !== 0 && realiseE1 >= contratE1 && !isCapotOrGeneraleE1) {
+  if (newEcartE1 >= 30 && contratE1 !== "0" && realiseE1Num >= contratE1Num && !isCapotOrGeneraleE1) {
     setEpicierAlert({
       show: true,
       teamName: team1Name,
@@ -55,9 +60,9 @@ export const useGameActions = () => {
   
   // Vérification Équipe 2
   // Ne déclenche PAS d'alerte si capot (500) ou générale (1000) réussi
-  const isCapotOrGeneraleE2 = (contratE2 === 500 || contratE2 === 1000) && realiseE2 >= contratE2;
+  const isCapotOrGeneraleE2 = (contratE2Num === 500 || contratE2Num === 1000) && realiseE2Num >= contratE2Num;
   
-  if (newEcartE2 >= 30 && contratE2 !== 0 && realiseE2 >= contratE2 && !isCapotOrGeneraleE2) {
+  if (newEcartE2 >= 30 && contratE2 !== "0" && realiseE2Num >= contratE2Num && !isCapotOrGeneraleE2) {
     setEpicierAlert({
       show: true,
       teamName: team2Name,
