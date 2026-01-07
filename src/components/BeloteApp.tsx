@@ -1066,6 +1066,6 @@ if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
       />
     </div>
   );
-
+};
 
 export default BeloteApp;
