@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from "sonner";
 import { BeloteRow, DisplayRow, ExtendedRemarque, AlertType } from '@/types/belote';
@@ -39,17 +40,8 @@ export const useGameActions = () => {
   const newEcartE1 = ecartTheoE1 - prevEcartTheoE1;
   const newEcartE2 = ecartTheoE2 - prevEcartTheoE2;
   
-  // CORRECTION : Ne pas déclencher l'alerte si c'est un capot (500) ou une générale (1000) réussis
-  const contratE1Num = parseInt(contratE1);
-  const realiseE1Num = parseInt(realiseE1);
-  const contratE2Num = parseInt(contratE2);
-  const realiseE2Num = parseInt(realiseE2);
-  
   // Vérification Équipe 1
-  // Ne déclenche PAS d'alerte si capot (500) ou générale (1000) réussi
-  const isCapotOrGeneraleE1 = (contratE1Num === 500 || contratE1Num === 1000) && realiseE1Num >= contratE1Num;
-  
-  if (newEcartE1 >= 30 && contratE1 !== "0" && realiseE1Num >= contratE1Num && !isCapotOrGeneraleE1) {
+  if (newEcartE1 >= 30 && contratE1 !== "0" && parseInt(realiseE1) >= parseInt(contratE1)) {
     setEpicierAlert({
       show: true,
       teamName: team1Name,
@@ -59,10 +51,7 @@ export const useGameActions = () => {
   }
   
   // Vérification Équipe 2
-  // Ne déclenche PAS d'alerte si capot (500) ou générale (1000) réussi
-  const isCapotOrGeneraleE2 = (contratE2Num === 500 || contratE2Num === 1000) && realiseE2Num >= contratE2Num;
-  
-  if (newEcartE2 >= 30 && contratE2 !== "0" && realiseE2Num >= contratE2Num && !isCapotOrGeneraleE2) {
+  if (newEcartE2 >= 30 && contratE2 !== "0" && parseInt(realiseE2) >= parseInt(contratE2)) {
     setEpicierAlert({
       show: true,
       teamName: team2Name,
@@ -145,19 +134,11 @@ export const useGameActions = () => {
   const getAlertForRow = (
     currentEcartTheo: number, 
     previousEcartTheo: number, 
-    remarques: string,
-    contrat: number,
-    realise: number
+    remarques: string
   ): AlertType => {
     // Vérifier d'abord "Vous êtes nuls" dans les remarques
     if (remarques === "Vous êtes nuls" || remarques === "Capot non annoncé") {
       return "Vous êtes nuls";
-    }
-    
-    // CORRECTION : Ne pas afficher d'alerte épicerie si capot (500) ou générale (1000) réussi
-    const isCapotOrGeneraleReussi = (contrat === 500 || contrat === 1000) && realise >= contrat;
-    if (isCapotOrGeneraleReussi) {
-      return null;
     }
     
     // Calculer l'écart de cette mène uniquement (pas le cumulé)
@@ -206,17 +187,13 @@ export const useGameActions = () => {
       
       // Alerte pour Team1 (seulement si c'est eux qui ont annoncé)
       const alertTeam1: AlertType = team1HasContract 
-        ? getAlertForRow(row["Ecarts Théorique"], prevEcartTheoE1, row.Remarques, row.Contrat, row.Réalisé)
+        ? getAlertForRow(row["Ecarts Théorique"], prevEcartTheoE1, row.Remarques)
         : null;
       
       // Alerte pour Team2 (seulement si c'est eux qui ont annoncé)
       const alertTeam2: AlertType = team2HasContract 
-        ? getAlertForRow(row["Ecarts Théorique_E2"], prevEcartTheoE2, row.Remarques_E2, row.Contrat_E2, row.Réalisé_E2)
+        ? getAlertForRow(row["Ecarts Théorique_E2"], prevEcartTheoE2, row.Remarques_E2)
         : null;
-      
-      // CORRECTION : Ne pas afficher l'écart si capot ou générale réussi
-      const isCapotOrGeneraleE1 = (row.Contrat === 500 || row.Contrat === 1000) && row.Réalisé >= row.Contrat;
-      const isCapotOrGeneraleE2 = (row.Contrat_E2 === 500 || row.Contrat_E2 === 1000) && row.Réalisé_E2 >= row.Contrat_E2;
       
       const team1Row: DisplayRow = {
         Mène: String(row.Mène),
@@ -224,7 +201,7 @@ export const useGameActions = () => {
         SuitColor: row.CardColor,
         Chute: formatTableCell(row.Chute, 2, row.Contrat),
         Réalisé: formatTableCell(row.Réalisé, 3, row.Contrat),
-        Ecart: isCapotOrGeneraleE1 ? { text: '-', backgroundColor: '#FFFFFF' } : formatTableCell(row.Ecart, 4, row.Contrat),
+        Ecart: formatTableCell(row.Ecart, 4, row.Contrat),
         "Ecarts Théo": formatTableCell(row["Ecarts Théorique"], 5, row.Contrat),
         Belote: formatTableCell(row["Belote Equipe 1"], 6, row.Contrat),
         Remarques: formatTableCell(row.Remarques === "Vous êtes nuls" ? "Capot non annoncé" : row.Remarques, 7, row.Contrat),
@@ -242,7 +219,7 @@ export const useGameActions = () => {
         SuitColor: row.CardColor_E2,
         Chute: formatTableCell(row.Chute_E2, 2, row.Contrat_E2),
         Réalisé: formatTableCell(row.Réalisé_E2, 3, row.Contrat_E2),
-        Ecart: isCapotOrGeneraleE2 ? { text: '-', backgroundColor: '#FFFFFF' } : formatTableCell(row.Ecart_E2, 4, row.Contrat_E2),
+        Ecart: formatTableCell(row.Ecart_E2, 4, row.Contrat_E2),
         "Ecarts Théo": formatTableCell(row["Ecarts Théorique_E2"], 5, row.Contrat_E2),
         Belote: formatTableCell(row["Belote Equipe 2"], 6, row.Contrat_E2),
         Remarques: formatTableCell(row.Remarques_E2 === "Vous êtes nuls" ? "Capot non annoncé" : row.Remarques_E2, 7, row.Contrat_E2),
