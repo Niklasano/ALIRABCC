@@ -329,19 +329,32 @@ if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
 
   // --- CALCUL DES ÉCARTS THÉORIQUES ---
 
+	let ecartBaseE1 = 0;
+	let ecartBaseE2 = 0;
+
+	if (contratE1Val > 0) {
+	  ecartBaseE1 = realiseE1Final - contratE1Val;
+	}
+	if (contratE2Val > 0) {
+	  ecartBaseE2 = realiseE2Final - contratE2Val;
+	}
   
    const prevEcartTheoE1 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique"] : 0;
-  const prevEcartTheoE2 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique_E2"] : 0;
+   const prevEcartTheoE2 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique_E2"] : 0;
   
   let ecartTheoE1 = prevEcartTheoE1;
   let ecartTheoE2 = prevEcartTheoE2;
 
-	 // On ajoute l'écart de la mène actuelle (calculé AVANT les modifications pour capot/chute)
-	if (contratE1Val > 0) {
-	  ecartTheoE1 = prevEcartTheoE1 + ecartE1;
-	} else if (contratE2Val > 0) {
-	  ecartTheoE2 = prevEcartTheoE2 + ecartE2;
-	}
+	 // On ajoute l'écart DE BASE de la mène actuelle
+if (contratE1Val > 0) {
+  ecartTheoE1 = prevEcartTheoE1 + ecartBaseE1;
+} else if (contratE2Val > 0) {
+  ecartTheoE2 = prevEcartTheoE2 + ecartBaseE2;
+}
+
+// --- MAINTENANT on calcule ecartE1 et ecartE2 avec les pénalités ---
+let ecartE1 = ecartBaseE1;
+let ecartE2 = ecartBaseE2;
 
   if (remarqueE1Display === "Capot non annoncé" || remarqueE1Display === "Vous êtes nuls") {
     ecartE1 = 500 - contratE1Val - realiseE1Final;
