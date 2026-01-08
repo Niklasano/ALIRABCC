@@ -11,19 +11,9 @@
 export const calculerEcart = (
   contrat: number,
   realise: number | null,
-  chute: number,
   realiseLabel?: string
 ): number => {
   if (contrat <= 0 || realise === null) return 0;
-
-  // Si le contrat est chuté, l'écart est 0
-  if (chute === 1) return 0;
-
-  // Si Capot annoncé (contrat = 500) et réussi
-  if (contrat === 500 && realise === 160 && realiseLabel === "Capot") return 0;
-
-  // Si Générale annoncée (contrat = 1000) et réussie
-  if (contrat === 1000 && realise === 160 && realiseLabel === "Générale") return 0;
 
   // Capot non annoncé (contrat < 500 mais réalisé = Capot)
   if (realise === 160 && realiseLabel === "Capot" && contrat < 500) {
@@ -40,13 +30,21 @@ export const calculerEcart = (
 };
 
 /**
- * Calcul de l'écart théorique pour une mène (valeur à cumuler)
+ * Calcul de l'écart théorique pour une mène (valeur à ajouter au cumul)
  * 
- * Règles:
- * - Contrat chuté → écart théorique = contrat + valeur du contra (coinche/sur coinche)
- * - Capot chuté → écart théorique = 500
- * - Générale chutée → écart théorique = 1000
- * - Contrat réussi → écart théorique = réalisé - contrat
+ * IMPORTANT: Cette fonction retourne l'écart de la mène à ajouter au cumul.
+ * Le cumul se fait dans BeloteApp : ecartTheorique = prevEcartTheo + ecart
+ * 
+ * Règles pour contrat chuté:
+ * - Contrat normal chuté → écart = contrat + contraValue (coinche/sur coinche)
+ * - Capot chuté → écart = 500
+ * - Générale chutée → écart = 1000
+ * 
+ * Règles pour contrat réussi:
+ * - Capot/Générale annoncé et réussi → écart = 0
+ * - Capot non annoncé → écart = 500 - contrat
+ * - Générale non annoncée → écart = 1000 - contrat
+ * - Contrat normal réussi → écart = réalisé - contrat
  */
 export const calculerEcartTheorique = (
   contrat: number,
@@ -60,22 +58,22 @@ export const calculerEcartTheorique = (
   // Valeur du contra
   const contraValue = remarque === "Sur Coinche" ? 100 : remarque === "Coinche" ? 90 : 0;
 
-  // Si le contrat est chuté
+  // Si le contrat est chuté, l'écart est 0 mais l'écart théorique compte
   if (chute === 1) {
     // Capot chuté
     if (contrat === 500) return 500;
     // Générale chutée
     if (contrat === 1000) return 1000;
-    // Contrat normal chuté
+    // Contrat normal chuté: contrat + valeur du contra
     return contrat + contraValue;
   }
 
-  // Contrat réussi - même logique que calculerEcart
+  // Contrat réussi
   // Si Capot annoncé (contrat = 500) et réussi
-  if (contrat === 500 && realise === 160 && realiseLabel === "Capot") return 0;
+  if (contrat === 500 && realise === 160) return 0;
 
   // Si Générale annoncée (contrat = 1000) et réussie
-  if (contrat === 1000 && realise === 160 && realiseLabel === "Générale") return 0;
+  if (contrat === 1000 && realise === 160) return 0;
 
   // Capot non annoncé
   if (realise === 160 && realiseLabel === "Capot" && contrat < 500) {
