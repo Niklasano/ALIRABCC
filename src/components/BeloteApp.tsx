@@ -350,16 +350,8 @@ if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
   const prevEcartTheoE2 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique_E2"] : 0;
 
  // Calcul normal du score (ne pas toucher pour garder les points justes)
-  if (contratE1Val > 0) {
-    ecartTheoE1 = prevEcartTheoE1 + ecartE1;
-    ecartTheoE2 = prevEcartTheoE2;
-  } else if (contratE2Val > 0) {
-    ecartTheoE1 = prevEcartTheoE1;
-    ecartTheoE2 = prevEcartTheoE2 + ecartE2;
-  } else {
-    ecartTheoE1 = prevEcartTheoE1;
-    ecartTheoE2 = prevEcartTheoE2;
-  }
+  ecartTheoE1 = prevEcartTheoE1 + (ecartE1 || 0);
+  ecartTheoE2 = prevEcartTheoE2 + (ecartE2 || 0);
 
     // --- GESTION DES ALERTES FLASH (AVEC PRIORITÉ) ---
   // On vérifie d'abord l'Epicier (Commerce de Gros, etc.)
