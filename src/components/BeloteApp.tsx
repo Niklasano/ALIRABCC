@@ -353,8 +353,9 @@ if (contratE1Val > 0) {
 }
 
 // --- MAINTENANT on calcule ecartE1 et ecartE2 avec les pénalités ---
-let ecartE1 = ecartBaseE1;
-let ecartE2 = ecartBaseE2;
+
+	ecartE1 = ecartBaseE1;
+	ecartE2 = ecartBaseE2;
 
   if (remarqueE1Display === "Capot non annoncé" || remarqueE1Display === "Vous êtes nuls") {
     ecartE1 = 500 - contratE1Val - realiseE1Final;
