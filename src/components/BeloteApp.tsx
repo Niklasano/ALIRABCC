@@ -339,18 +339,7 @@ if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
 	  ecartBaseE2 = realiseE2Final - contratE2Val;
 	}
   
-   const prevEcartTheoE1 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique"] : 0;
-   const prevEcartTheoE2 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique_E2"] : 0;
-  
-  let ecartTheoE1 = prevEcartTheoE1;
-  let ecartTheoE2 = prevEcartTheoE2;
-
-	 // On ajoute l'écart DE BASE de la mène actuelle
-if (contratE1Val > 0) {
-  ecartTheoE1 = prevEcartTheoE1 + ecartBaseE1;
-} else if (contratE2Val > 0) {
-  ecartTheoE2 = prevEcartTheoE2 + ecartBaseE2;
-}
+   
 
 // --- MAINTENANT on calcule ecartE1 et ecartE2 avec les pénalités ---
 
@@ -372,7 +361,18 @@ if (contratE1Val > 0) {
     ecartE2 = (contratE2Val === 500) ? 500 : (contratE2Val === 1000) ? 1000 : 2 * contratE2Val;
   }
 
- 
+ const prevEcartTheoE1 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique"] : 0;
+   const prevEcartTheoE2 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique_E2"] : 0;
+  
+  let ecartTheoE1 = prevEcartTheoE1;
+  let ecartTheoE2 = prevEcartTheoE2;
+
+	// On ajoute l'écart FINAL de la mène actuelle (celui qui s'affiche)
+if (contratE1Val > 0) {
+  ecartTheoE1 = prevEcartTheoE1 + ecartE1;
+} else if (contratE2Val > 0) {
+  ecartTheoE2 = prevEcartTheoE2 + ecartE2;
+}
 
     // --- GESTION DES ALERTES FLASH (AVEC PRIORITÉ) ---
   // On vérifie d'abord l'Epicier (Commerce de Gros, etc.)
