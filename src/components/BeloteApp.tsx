@@ -328,7 +328,8 @@ if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
   }
 
   // --- CALCUL DES ÉCARTS THÉORIQUES ---
-
+  let ecartTheoE1 = 0;
+  let ecartTheoE2 = 0;
   
    const prevEcartTheoE1 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique"] : 0;
   const prevEcartTheoE2 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique_E2"] : 0;
