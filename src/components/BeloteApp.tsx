@@ -330,19 +330,6 @@ if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
   // --- CALCUL DES ÉCARTS THÉORIQUES ---
   let ecartTheoE1 = 0;
   let ecartTheoE2 = 0;
-  
-   const prevEcartTheoE1 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique"] : 0;
-  const prevEcartTheoE2 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique_E2"] : 0;
-  
-  let ecartTheoE1 = prevEcartTheoE1;
-  let ecartTheoE2 = prevEcartTheoE2;
-
-	 // On ajoute l'écart de la mène actuelle (calculé AVANT les modifications pour capot/chute)
-	if (contratE1Val > 0) {
-	  ecartTheoE1 = prevEcartTheoE1 + ecartE1;
-	} else if (contratE2Val > 0) {
-	  ecartTheoE2 = prevEcartTheoE2 + ecartE2;
-	}
 
   if (remarqueE1Display === "Capot non annoncé" || remarqueE1Display === "Vous êtes nuls") {
     ecartE1 = 500 - contratE1Val - realiseE1Final;
@@ -359,7 +346,23 @@ if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
     ecartE2 = (contratE2Val === 500) ? 500 : (contratE2Val === 1000) ? 1000 : 2 * contratE2Val;
   }
 
- 
+  const prevEcartTheoE1 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique"] : 0;
+  const prevEcartTheoE2 = gameState.data.length > 0 ? gameState.data[gameState.data.length - 1]["Ecarts Théorique_E2"] : 0;
+
+ // Calcul cumulatif : on ajoute TOUJOURS l'écart de la mène actuelle à l'écart théorique précédent
+	if (contratE1Val > 0) {
+	  // E1 joue : on ajoute son écart à son total, E2 garde son total précédent
+	  ecartTheoE1 = prevEcartTheoE1 + ecartE1;
+	  ecartTheoE2 = prevEcartTheoE2;
+	} else if (contratE2Val > 0) {
+	  // E2 joue : on ajoute son écart à son total, E1 garde son total précédent
+	  ecartTheoE1 = prevEcartTheoE1;
+	  ecartTheoE2 = prevEcartTheoE2 + ecartE2;
+	} else {
+	  // Aucune équipe ne joue : on garde les totaux précédents
+	  ecartTheoE1 = prevEcartTheoE1;
+	  ecartTheoE2 = prevEcartTheoE2;
+	}
 
     // --- GESTION DES ALERTES FLASH (AVEC PRIORITÉ) ---
   // On vérifie d'abord l'Epicier (Commerce de Gros, etc.)
