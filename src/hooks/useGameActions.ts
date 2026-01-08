@@ -1,12 +1,15 @@
-
 import { useState } from 'react';
-import { toast } from "sonner";
 import { BeloteRow, DisplayRow, ExtendedRemarque, AlertType } from '@/types/belote';
-import { CONTRATS, REALISES, BELOTE_ANNONCES } from '@/types/belote';
 import {
-  calculerEcart, calculerPoints, calculerPointsAdverse,
-  calculerPointsTheoriques, formatTableCell, createNewBeloteRow,
-  getNextDealer, getPreviousDealer
+  calculerEcart,
+  calculerEcartTheorique,
+  calculerPoints,
+  calculerPointsAdverse,
+  calculerPointsTheoriques,
+  formatTableCell,
+  createNewBeloteRow,
+  getNextDealer,
+  getPreviousDealer
 } from '@/utils/beloteUtils';
 
 export const useGameActions = () => {
@@ -24,151 +27,143 @@ export const useGameActions = () => {
     show: boolean;
   } | null>(null);
 
-  // Fonction pour vérifier si un écart théorique d'au moins 30 points est atteint
+  /**
+   * Vérifie si une alerte épicier doit être affichée
+   * Conditions:
+   * - Contrat réussi avec écart >= 30 → Épicerie
+   * - Contrat réussi avec écart >= 40 → Épicerie Fine
+   * - Contrat réussi avec écart >= 50 → Commerce de Gros
+   * - Ne s'applique PAS si contrat chuté
+   * - Ne s'applique PAS si Capot/Générale annoncé et réussi
+   */
   const checkEpicierCondition = (
-  ecartTheoE1: number, 
-  ecartTheoE2: number, 
-  prevEcartTheoE1: number, 
-  prevEcartTheoE2: number,
-  contratE1: string,
-  realiseE1: string,
-  contratE2: string,
-  realiseE2: string,
-  team1Name: string,
-  team2Name: string
-) => {
-  const newEcartE1 = ecartTheoE1 - prevEcartTheoE1;
-  const newEcartE2 = ecartTheoE2 - prevEcartTheoE2;
-  
-  // Vérification Équipe 1
-  if (newEcartE1 >= 30 && contratE1 !== "0" && parseInt(realiseE1) >= parseInt(contratE1)) {
-    setEpicierAlert({
-      show: true,
-      teamName: team1Name,
-      ecartTheo: newEcartE1
-    });
-    return true; // ALERTE LANCÉE -> BLOQUE LES AUTRES
-  }
-  
-  // Vérification Équipe 2
-  if (newEcartE2 >= 30 && contratE2 !== "0" && parseInt(realiseE2) >= parseInt(contratE2)) {
-    setEpicierAlert({
-      show: true,
-      teamName: team2Name,
-      ecartTheo: newEcartE2
-    });
-    return true; // ALERTE LANCÉE -> BLOQUE LES AUTRES
-  }
+    ecart: number,
+    contrat: number,
+    chute: number,
+    realiseLabel: string | undefined,
+    teamName: string
+  ): boolean => {
+    // Pas d'alerte si pas de contrat ou contrat chuté
+    if (contrat === 0 || chute === 1) return false;
 
-  return false; // AUCUNE ALERTE ÉPICIER
-};
+    // Pas d'alerte si Capot/Générale annoncé et réussi
+    if (contrat >= 500) return false;
 
-  // Fonction pour vérifier si une équipe fait un capot sans l'avoir annoncé
+    // Pas d'alerte si Capot/Générale non annoncé (c'est "Vous êtes nuls" qui s'applique)
+    if (realiseLabel === "Capot" || realiseLabel === "Générale") return false;
+
+    // Vérifier les seuils d'épicerie
+    if (ecart >= 30) {
+      setEpicierAlert({
+        show: true,
+        teamName: teamName,
+        ecartTheo: ecart
+      });
+      return true;
+    }
+
+    return false;
+  };
+
+  /**
+   * Vérifie si une alerte "Vous êtes nuls" doit être affichée
+   * Condition: Contrat non Capot/Générale mais réalise un Capot
+   */
   const checkVousEtesNulsCondition = (
-    realiseE1: number,
-    contratE1: number,
-    realiseE2: number,
-    contratE2: number,
-    team1Name: string,
-    team2Name: string,
-    realiseE1Label?: string,
-    realiseE2Label?: string
-  ) => {
-    // Équipe 1 fait un capot sans l'avoir annoncé (mais pas si "0 mais pas capot" est sélectionné)
-    if (realiseE1 === 160 && contratE1 > 0 && contratE1 < 500 && realiseE1Label !== "0 mais pas capot") {
-      setVousEtesNulsAlert({
-        show: true
-      });
-      return;
+    realise: number,
+    contrat: number,
+    realiseLabel?: string
+  ): boolean => {
+    // Équipe fait un Capot sans l'avoir annoncé (et pas "0 mais pas capot")
+    if (realise === 160 && contrat > 0 && contrat < 500 && realiseLabel === "Capot") {
+      setVousEtesNulsAlert({ show: true });
+      return true;
     }
-    
-    // Équipe 2 fait un capot sans l'avoir annoncé (mais pas si "0 mais pas capot" est sélectionné)
-    if (realiseE2 === 160 && contratE2 > 0 && contratE2 < 500 && realiseE2Label !== "0 mais pas capot") {
-      setVousEtesNulsAlert({
-        show: true
-      });
-      return;
-    }
+    return false;
   };
 
-  // Fonction pour vérifier si une équipe fait une Générale réussie
+  /**
+   * Vérifie si une alerte "La Chatte" doit être affichée
+   * Condition: Contrat non Générale mais réalise une Générale
+   */
   const checkLaChatteCondition = (
-    contratE1: number,
-    realiseE1: number,
-    contratE2: number,
-    realiseE2: number,
-    team1Name: string,
-    team2Name: string
-  ) => {
-    // Vérifier si une des équipes contient "Pépite" ou "Petit Ageorges"
-    const team1Players = team1Name.toLowerCase();
-    const team2Players = team2Name.toLowerCase();
-    const forbiddenNames = ['nico', 'petit ageorges'];
-    
-    const hasForbiddenName = forbiddenNames.some(name => 
-      team1Players.includes(name) || team2Players.includes(name)
-    );
-    
-    if (hasForbiddenName) {
-      return;
+    realise: number,
+    contrat: number,
+    realiseLabel?: string
+  ): boolean => {
+    // Équipe fait une Générale sans l'avoir annoncée
+    if (realise === 160 && contrat > 0 && contrat < 1000 && realiseLabel === "Générale") {
+      setLaChatteAlert({ show: true });
+      return true;
     }
-    
-    // Équipe 1 annonce et réussit une Générale (1000)
-    if (contratE1 === 1000 && realiseE1 === 160) {
-      setLaChatteAlert({
-        show: true
-      });
-      return;
-    }
-    
-    // Équipe 2 annonce et réussit une Générale (1000)
-    if (contratE2 === 1000 && realiseE2 === 160) {
-      setLaChatteAlert({
-        show: true
-      });
-      return;
-    }
+    return false;
   };
 
-  // Fonction pour déterminer l'alerte d'une équipe basée sur l'écart théorique de la mène
+  /**
+   * Détermine l'alerte à afficher dans la colonne Alerte du tableau
+   * 
+   * Règles:
+   * - Contrat chuté → aucune alerte
+   * - Capot/Générale annoncé et réussi → aucune alerte
+   * - Capot non annoncé → "Vous êtes nuls"
+   * - Générale non annoncée → "La Chatte"
+   * - Réussi >= 50 → "Commerce de Gros"
+   * - Réussi >= 40 → "Épicerie Fine"
+   * - Réussi >= 30 → "Épicerie"
+   */
   const getAlertForRow = (
-  currentEcartTheo: number, 
-  previousEcartTheo: number, 
-  remarques: string,
-  contrat: number,
-  realise: number,
-  chute: number
-): AlertType => {
-  // 1. PRIORITÉ ABSOLUE : Capot ou Générale non annoncé
-  if (remarques === "Vous êtes nuls" || remarques === "Capot non annoncé") {
-    return "Vous êtes nuls";
-  }
-  
-  if (remarques === "La Chatte" || remarques === "Générale non annoncée") {
-    return "La Chatte";
-  }
+    ecart: number,
+    contrat: number,
+    chute: number,
+    realiseLabel?: string
+  ): AlertType => {
+    // Si contrat chuté → aucune alerte
+    if (chute === 1) return null;
 
-  // 2. Si contrat chuté : AUCUNE ALERTE ÉPICIER
-  if (chute === 1) return null;
+    // Si pas de contrat → aucune alerte
+    if (contrat === 0) return null;
 
-  // 3. Si Capot ou Générale RÉUSSI (annoncé) : AUCUNE ALERTE ÉPICIER
-  const isCapotOrGeneraleReussi = (contrat === 500 || contrat === 1000) && realise === 160;
-  if (isCapotOrGeneraleReussi) return null;
-  
-  // 4. CALCUL DE L'ÉCART DE LA MÈNE
-  const ecartMene = currentEcartTheo - previousEcartTheo;
+    // Si Capot/Générale annoncé et réussi → aucune alerte
+    if (contrat >= 500) return null;
 
-  // MODIFICATION ICI : On ignore les écarts qui correspondent à un Capot (420) ou Générale (920)
-  // pour qu'ils ne soient pas transformés en "Commerce de Gros" par erreur.
-  // On ne traite que les écarts "standards" d'épicerie.
-  if (ecartMene >= 50 && ecartMene < 400) return "Commerce de Gros"; 
-  if (ecartMene >= 40 && ecartMene < 50) return "Épicerie Fine"; 
-  if (ecartMene >= 30 && ecartMene < 40) return "Épicerie"; 
-  
-  return null;
-};
+    // Générale non annoncée → "La Chatte"
+    if (realiseLabel === "Générale") return "La Chatte";
 
-  // Fonction pour mettre à jour les tableaux d'affichage
+    // Capot non annoncé → "Vous êtes nuls"
+    if (realiseLabel === "Capot") return "Vous êtes nuls";
+
+    // Alertes épicerie basées sur l'écart
+    if (ecart >= 50) return "Commerce de Gros";
+    if (ecart >= 40) return "Épicerie Fine";
+    if (ecart >= 30) return "Épicerie";
+
+    return null;
+  };
+
+  /**
+   * Détermine la remarque à stocker dans la base de données
+   */
+  const getRemarqueForRow = (
+    remarqueInput: string,
+    contrat: number,
+    realiseLabel?: string
+  ): string => {
+    // Générale non annoncée
+    if (contrat > 0 && contrat < 1000 && realiseLabel === "Générale") {
+      return "Générale non annoncée";
+    }
+
+    // Capot non annoncé
+    if (contrat > 0 && contrat < 500 && realiseLabel === "Capot") {
+      return "Capot non annoncé";
+    }
+
+    return remarqueInput;
+  };
+
+  /**
+   * Met à jour les tableaux d'affichage
+   */
   const updateDisplayTables = (
     newData: BeloteRow[],
     setTeam1Rows: (rows: DisplayRow[]) => void,
@@ -181,33 +176,38 @@ export const useGameActions = () => {
   ) => {
     const team1Rows: DisplayRow[] = [];
     const team2Rows: DisplayRow[] = [];
-    
+
     let totalE1 = 0;
     let totalE2 = 0;
-    
-    newData.forEach((row, i) => {
-      totalE1 += row.Points;
-      totalE2 += row.Points_E2;
+    let prevEcartTheoE1 = 0;
+    let prevEcartTheoE2 = 0;
+
+    newData.forEach((row, index) => {
+      totalE1 = row.Total;
+      totalE2 = row.Total_E2;
+
+      const currentEcartTheoE1 = row["Ecarts Théorique"];
+      const currentEcartTheoE2 = row["Ecarts Théorique_E2"];
       
-      // Récupérer les écarts précédents pour calculer l'écart de la mène
-      const prevEcartTheoE1 = i > 0 ? newData[i - 1]["Ecarts Théorique"] : 0;
-      const prevEcartTheoE2 = i > 0 ? newData[i - 1]["Ecarts Théorique_E2"] : 0;
-      
-      // Déterminer quelle équipe a annoncé le contrat (basé sur qui a un contrat > 0)
-      const team1HasContract = row.Contrat > 0;
-      const team2HasContract = row.Contrat_E2 > 0;
-      
-      // Alerte pour Team1 (seulement si c'est eux qui ont annoncé)
-      const alertTeam1: AlertType = team1HasContract 
-        ? getAlertForRow(row["Ecarts Théorique"], prevEcartTheoE1, row.Remarques)
-        : null;
-      
-      // Alerte pour Team2 (seulement si c'est eux qui ont annoncé)
-      const alertTeam2: AlertType = team2HasContract 
-        ? getAlertForRow(row["Ecarts Théorique_E2"], prevEcartTheoE2, row.Remarques_E2)
-        : null;
-      
-      const team1Row: DisplayRow = {
+      const ecartMeneE1 = currentEcartTheoE1 - prevEcartTheoE1;
+      const ecartMeneE2 = currentEcartTheoE2 - prevEcartTheoE2;
+
+      // Déterminer les alertes basées sur l'écart de la mène
+      const alertTeam1 = getAlertForRow(
+        row.Ecart,
+        row.Contrat,
+        row.Chute,
+        row.CardColor // Utilise CardColor pour stocker realiseLabel temporairement
+      );
+
+      const alertTeam2 = getAlertForRow(
+        row.Ecart_E2,
+        row.Contrat_E2,
+        row.Chute_E2,
+        row.CardColor_E2
+      );
+
+      team1Rows.push({
         Mène: String(row.Mène),
         Contrat: formatTableCell(row.Contrat, 1, row.Contrat),
         SuitColor: row.CardColor,
@@ -216,16 +216,22 @@ export const useGameActions = () => {
         Ecart: formatTableCell(row.Ecart, 4, row.Contrat),
         "Ecarts Théo": formatTableCell(row["Ecarts Théorique"], 5, row.Contrat),
         Belote: formatTableCell(row["Belote Equipe 1"], 6, row.Contrat),
-        Remarques: formatTableCell(row.Remarques === "Vous êtes nuls" ? "Capot non annoncé" : row.Remarques, 7, row.Contrat),
+        Remarques: formatTableCell(
+          row.Remarques === "Vous êtes nuls" ? "Capot non annoncé" : 
+          row.Remarques === "La Chatte" ? "Générale non annoncée" : 
+          row.Remarques, 
+          7, 
+          row.Contrat
+        ),
         Points: formatTableCell(row.Points, 8, row.Contrat),
         Alerte: alertTeam1,
         Total: {
           text: String(totalE1),
-          backgroundColor: totalE1 >= totalE2 ? '#90ee90' : '#ff6347'
+          backgroundColor: ""
         }
-      };
-      
-      const team2Row: DisplayRow = {
+      });
+
+      team2Rows.push({
         Mène: String(row.Mène),
         Contrat: formatTableCell(row.Contrat_E2, 1, row.Contrat_E2),
         SuitColor: row.CardColor_E2,
@@ -234,24 +240,30 @@ export const useGameActions = () => {
         Ecart: formatTableCell(row.Ecart_E2, 4, row.Contrat_E2),
         "Ecarts Théo": formatTableCell(row["Ecarts Théorique_E2"], 5, row.Contrat_E2),
         Belote: formatTableCell(row["Belote Equipe 2"], 6, row.Contrat_E2),
-        Remarques: formatTableCell(row.Remarques_E2 === "Vous êtes nuls" ? "Capot non annoncé" : row.Remarques_E2, 7, row.Contrat_E2),
+        Remarques: formatTableCell(
+          row.Remarques_E2 === "Vous êtes nuls" ? "Capot non annoncé" : 
+          row.Remarques_E2 === "La Chatte" ? "Générale non annoncée" : 
+          row.Remarques_E2, 
+          7, 
+          row.Contrat_E2
+        ),
         Points: formatTableCell(row.Points_E2, 8, row.Contrat_E2),
         Alerte: alertTeam2,
         Total: {
           text: String(totalE2),
-          backgroundColor: totalE2 > totalE1 ? '#90ee90' : '#ff6347'
+          backgroundColor: ""
         }
-      };
-      
-      team1Rows.push(team1Row);
-      team2Rows.push(team2Row);
+      });
+
+      prevEcartTheoE1 = currentEcartTheoE1;
+      prevEcartTheoE2 = currentEcartTheoE2;
     });
-    
+
     setTeam1Rows(team1Rows);
     setTeam2Rows(team2Rows);
     setTeam1Score(totalE1);
     setTeam2Score(totalE2);
-    
+
     const victoryThreshold = parseInt(victoryPoints);
     setTeam1Winner(totalE1 >= victoryThreshold);
     setTeam2Winner(totalE2 >= victoryThreshold);
@@ -267,6 +279,8 @@ export const useGameActions = () => {
     checkEpicierCondition,
     checkVousEtesNulsCondition,
     checkLaChatteCondition,
-    updateDisplayTables,
+    getAlertForRow,
+    getRemarqueForRow,
+    updateDisplayTables
   };
 };

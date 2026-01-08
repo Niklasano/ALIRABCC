@@ -1,22 +1,17 @@
-
-// Main utilities entry point file
-// Re-export all utilities from specialized files for backward compatibility
-
-export { 
-  calculerEcart, 
-  calculerPoints, 
-  calculerPointsAdverse, 
-  calculerPointsTheoriques 
+// Re-export all utilities from separate files
+export {
+  calculerEcart,
+  calculerEcartTheorique,
+  calculerPoints,
+  calculerPointsAdverse,
+  calculerPointsTheoriques
 } from './beloteScoreUtils';
 
-export { 
-  formatTableCell, 
-  createNewBeloteRow 
+export {
+  formatTableCell,
+  createNewBeloteRow,
+  getNextDealer,
+  getPreviousDealer,
+  getCutterIndex,
+  getOpenerIndex
 } from './beloteTableUtils';
-
-export { 
-  getNextDealer, 
-  getPreviousDealer, 
-  getCutterIndex, 
-  getOpenerIndex 
-} from './beloteGameUtils';

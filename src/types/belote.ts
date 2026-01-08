@@ -1,13 +1,53 @@
-
-export const BELOTE_ANNONCES = { "N/A": 0, "Belote": 20, "Double Belote": 40, "Triple Belote": 60, "Quadruple Belote": 80 } as const;
-export const REMARQUES = { "N/A": 0, "Coinche": 90, "Sur Coinche": 100 } as const;
-export const CONTRATS = { 
-  "0": 0, "80": 80, "90": 90, "100": 100, "110": 110, "120": 120, "130": 130, 
-  "140": 140, "150": 150, "160": 160, "Capot": 500, "Générale": 1000 
+export const BELOTE_ANNONCES = {
+  "N/A": 0,
+  "Belote": 20,
+  "Double Belote": 40,
+  "Triple Belote": 60,
+  "Quadruple Belote": 80
 } as const;
+
+export const REMARQUES = {
+  "N/A": 0,
+  "Coinche": 90,
+  "Sur Coinche": 100
+} as const;
+
+export const CONTRATS = {
+  "0": 0,
+  "80": 80,
+  "90": 90,
+  "100": 100,
+  "110": 110,
+  "120": 120,
+  "130": 130,
+  "140": 140,
+  "150": 150,
+  "160": 160,
+  "Capot": 500,
+  "Générale": 1000
+} as const;
+
 export const REALISES = {
-  "0": 0, "0 mais pas capot": 0, "10": 10, "20": 20, "30": 30, "40": 40, "50": 50, "60": 60, "70": 70, "80": 80, "90": 90,
-  "100": 100, "110": 110, "120": 120, "130": 130, "140": 140, "150": 150, "160": 160, "Capot": 160, "Générale": 160
+  "0": 0,
+  "0 mais pas capot": 0,
+  "10": 10,
+  "20": 20,
+  "30": 30,
+  "40": 40,
+  "50": 50,
+  "60": 60,
+  "70": 70,
+  "80": 80,
+  "90": 90,
+  "100": 100,
+  "110": 110,
+  "120": 120,
+  "130": 130,
+  "140": 140,
+  "150": 150,
+  "160": 160,
+  "Capot": 160,
+  "Générale": 160
 } as const;
 
 export type BeloteAnnonce = keyof typeof BELOTE_ANNONCES;
@@ -15,8 +55,7 @@ export type Remarque = keyof typeof REMARQUES;
 export type Contrat = keyof typeof CONTRATS;
 export type Realise = keyof typeof REALISES;
 
-// Extended remarks for display purposes
-export type ExtendedRemarque = Remarque | "Vous êtes nuls" | "Capot non annoncé";
+export type ExtendedRemarque = Remarque | "Vous êtes nuls" | "Capot non annoncé" | "Générale non annoncée" | "La Chatte";
 
 export interface BeloteRow {
   Mène: number;
@@ -55,7 +94,7 @@ export interface Team {
 
 export interface Player {
   name: string;
-  position: number; // 0 = Haut Gauche, 1 = Haut Droit, 2 = Bas Gauche, 3 = Bas Droit
+  position: number;
   team: 1 | 2;
 }
 
@@ -64,7 +103,7 @@ export interface TableCellData {
   backgroundColor: string;
 }
 
-export type AlertType = "Épicerie" | "Épicerie Fine" | "Commerce de Gros" | "Vous êtes nuls" | null;
+export type AlertType = "Épicerie" | "Épicerie Fine" | "Commerce de Gros" | "Vous êtes nuls" | "La Chatte" | null;
 
 export interface DisplayRow {
   Mène: string;
