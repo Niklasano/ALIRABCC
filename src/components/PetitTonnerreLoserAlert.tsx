@@ -22,11 +22,11 @@ const PetitTonnerreLoserAlert: React.FC<PetitTonnerreLoserAlertProps> = ({ onClo
         <h2 className="text-white text-3xl font-black text-center mb-4">
           ⛈️ PETIT TONNERRE S'EST ENCORE ANNONCE BRAZIL ⛈️
         </h2>
-        <video
-          src="/petit-tonnerre-loser.mp4"
-          autoPlay
-          controls
-          className="w-full rounded-lg"
+        <iframe
+          className="w-full aspect-video rounded-lg"
+          src="https://www.youtube.com/embed/e8UHEuCI4d4?autoplay=1"
+          allow="autoplay; encrypted-media"
+          allowFullScreen
         />
         <Button onClick={handleClose} className="mt-4 w-full">
           Fermer
