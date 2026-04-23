@@ -9,7 +9,7 @@ import html2canvas from 'html2canvas';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { useParams } from 'react-router-dom';
-
+import PetitTonnerreLoserAlert from './PetitTonnerreLoserAlert';
 import TeamInputForm from './TeamInputForm';
 import BeloteTable from './BeloteTable';
 import TotalScores from './TotalScores';
@@ -70,6 +70,7 @@ const BeloteApp: React.FC = () => {
   const [showPointsRules, setShowPointsRules] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [showFausseDonne, setShowFausseDonne] = useState<boolean>(false);
+  const [showPetitTonnerreLoser, setShowPetitTonnerreLoser] = useState<boolean>(false);
 
   // Référence pour les tableaux de score
   const scoreTablesRef = useRef<HTMLDivElement>(null);
@@ -178,6 +179,11 @@ useEffect(() => {
     if ((gameState.team1Winner || gameState.team2Winner) && gameState.data.length > 0) {
       setShowWinnerAlert(true);
       
+	const loserTeam = gameState.team1Winner ? gameState.team2Name : gameState.team1Name;
+   	 if (loserTeam.toLowerCase().includes('petit tonnerre')) {
+      setShowPetitTonnerreLoser(true);
+    }
+
       // Sauvegarder la partie dans l'historique
       gameHistory.saveGame(
         gameState.team1Name,
@@ -925,6 +931,12 @@ if ((contratE2Val === 500 || contratE2Val === 1000) && realiseE2Final === 160) {
       {gameActions.laChatteAlert && gameActions.laChatteAlert.show && (
         <LaChatteAlert 
           onClose={() => gameActions.setLaChatteAlert(null)} 
+        />
+      )}
+
+	{showPetitTonnerreLoser && (
+        <PetitTonnerreLoserAlert
+          onClose={() => setShowPetitTonnerreLoser(false)}
         />
       )}
       
