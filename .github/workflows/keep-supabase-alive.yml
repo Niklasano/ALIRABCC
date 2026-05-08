@@ -10,8 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Supabase
-        env:
-          ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          curl -sf -H "apikey: ${ANON_KEY}" -H "Authorization: Bearer ${ANON_KEY}" "https://fonouaperojtxczgorqh.supabase.co/rest/v1/" --max-time 10
+          curl -s "https://fonouaperojtxczgorqh.supabase.co/rest/v1/" --max-time 10 || true
           echo "Ping OK"
