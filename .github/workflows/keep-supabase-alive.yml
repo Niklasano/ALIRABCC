@@ -13,9 +13,5 @@ jobs:
         env:
           ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          curl -s \
-            -H "apikey: ${ANON_KEY}" \
-            -H "Authorization: Bearer ${ANON_KEY}" \
-            https://wqicminuxbixwrdlwhqs.supabase.co/rest/v1/ \
-            --max-time 10
+          curl -sf -H "apikey: ${ANON_KEY}" -H "Authorization: Bearer ${ANON_KEY}" "https://wqicminuxbixwrdlwhqs.supabase.co/rest/v1/" --max-time 10
           echo "Ping OK"
