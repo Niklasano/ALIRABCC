@@ -1,17 +1,14 @@
 name: Keep Supabase Alive
 
 on:
-  schedule:
-    - cron: '0 8 * * *'
   workflow_dispatch:
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase
-        env:
-          ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: |
-          curl -sf -H "apikey: ${ANON_KEY}" -H "Authorization: Bearer ${ANON_KEY}" "https://wqicminuxbixwrdlwhqs.supabase.co/rest/v1/" --max-time 10
-          echo "Ping OK"
+      - name: Test réseau
+        run: curl -v https://google.com --max-time 10
+
+      - name: Test Supabase sans auth
+        run: curl -v https://wqicminuxbixwrdlwhqs.supabase.co --max-time 10
